@@ -20,7 +20,7 @@ const schema = yup.object().shape({
     password: yup.string().min(8, "Password must be at least 8 characters").required("Password is required"),
 });
 
-export function RegisterForm() {
+function RegisterForm() {
     const {toast} = useToast();
     const {register, handleSubmit, formState: {errors}} = useForm({
         resolver: yupResolver(schema),

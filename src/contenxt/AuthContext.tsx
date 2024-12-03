@@ -18,7 +18,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     const [token, setToken] = useState<string | null>(null);
     const router = useRouter();
 
-    // Sprawdzanie tokenu podczas inicjalizacji
     useEffect(() => {
         const savedToken = Cookies.get("accessToken");
         if (savedToken) {
@@ -49,7 +48,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
         Cookies.remove("refreshToken");
         router.push("/");
     };
-
     return (
         <AuthContext.Provider value={{isAuthenticated, login, logout, token}}>
             {children}
