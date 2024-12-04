@@ -1,16 +1,18 @@
 "use client";
 import React from "react";
-import { Boxes } from "../ui/background-boxes";
-import { cn } from "@/lib/utils";
+import {Boxes} from "../ui/background-boxes";
+import {cn} from "@/lib/utils";
 
 export function BackgroundBoxesDemo() {
     return (
-        <div className="absolute inset-0 w-full h-full overflow-hidden bg-background flex flex-col items-center justify-center text-foreground">
+        <div
+            className="absolute inset-0 w-full h-full overflow-hidden bg-background flex flex-col items-center justify-center text-foreground">
             {/* Background overlay */}
-            <div className="absolute inset-0 w-full h-full bg-background z-10 [mask-image:radial-gradient(transparent,white)] pointer-events-none" />
+            <div
+                className="absolute inset-0 w-full h-full bg-background z-10 [mask-image:radial-gradient(transparent,white)] pointer-events-none"/>
 
             {/* Animated Boxes */}
-            <Boxes />
+            <Boxes/>
 
             {/* Centered content */}
             <div className="relative z-20 text-center">
@@ -22,7 +24,8 @@ export function BackgroundBoxesDemo() {
                     sharing. It supports user-based ownership, group management, and
                     permission controls with a relational database.
                 </p>
-                <button className="bg-highlight text-contrast px-4 py-2 mt-6 rounded-md hover:bg-highlight/80 transition">
+                <button
+                    className="bg-highlight text-contrast px-4 py-2 mt-6 rounded-md hover:bg-highlight/80 transition">
                     Learn More
                 </button>
             </div>
