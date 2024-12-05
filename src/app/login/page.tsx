@@ -31,7 +31,10 @@ function LoginForm() {
         resolver: yupResolver(schema),
     });
 
-    const onSubmit = async (data: { username: string; password: string }) => {
+    const onSubmit = async (data: {
+        username: string;
+        password: string
+    }) => {
         try {
             const response = await fetch(API_ENDPOINTS.auth.login, {
                 method: "POST",
@@ -103,6 +106,15 @@ function LoginForm() {
                             <BottomGradient/>
                         </button>
                     </form>
+                    <p className="mt-4 text-center text-gray-600 dark:text-gray-400">
+                        Don&#39;t have an account?{" "}
+                        <a
+                            href="/register"
+                            className="text-blue-500 hover:underline dark:text-blue-400"
+                        >
+                            Sign up here
+                        </a>
+                    </p>
                 </div>
             </div>
         </BackgroundBeamsWithCollision>

@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
         byEmail: (email: string) => `${BASE_URL}/users/email/${email}`,
         password: (id: string) => `${BASE_URL}/users/${id}/password`,
         email: (id: string) => `${BASE_URL}/users/${id}/email`,
+        current: `${BASE_URL}/users/me`,
     },
     groups: {
         root: `${BASE_URL}/groups`,
@@ -15,6 +16,7 @@ export const API_ENDPOINTS = {
     },
     files: {
         root: `${BASE_URL}/files`,
+        uploadFile: `${BASE_URL}/files`,
         byId: (id: string) => `${BASE_URL}/files/${id}`,
         userFiles: (userId: string) => `${BASE_URL}/files/user/${userId}`,
         notShared: (userId: string) => `${BASE_URL}/files/user/${userId}/not-shared`,

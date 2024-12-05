@@ -75,5 +75,5 @@ export async function apiFetch<T>(
         throw new Error(error.message || "API Error");
     }
 
-    return response.json();
+    return response.status === 204 ? null : response.json();
 }
