@@ -37,7 +37,9 @@ body {
         --base: 215 35% 80%; /* Soft Blue */
         --contrast: 0 0% 10%; /* Rich Black for Text */
         --deep-blue: 214, 94%, 35%; /* #152238 */
-        --login-button: 205 100% 45%;;
+        --login-button: 205 100% 45%;
+        --card-background: 224 71.4% 4.1%;
+        --big-background: 224 71.4% 4.1%;
     }
 
     .dark {
@@ -70,6 +72,8 @@ body {
         --contrast: 210 10% 90%; /* Bright White for Text */
         --deep-blue: 214, 94%, 11%; /* Darkened #152238 */
         --login-button: 240, 10%, 4%;
+        --card-background: 224, 60%, 35%;
+        --big-background: 196.74, 59.38%;
     }
 }
 

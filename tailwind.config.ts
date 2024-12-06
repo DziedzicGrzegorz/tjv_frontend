@@ -35,6 +35,8 @@ export default {
                 foreground: 'hsl(var(--foreground))',
                 deepBlue: 'hsl(var(--deep-blue))',
                 loginButton: 'hsl(var(--login-button))',
+                cardBackground: 'hsl(var(--card-background))',
+                bigBackground: 'hsl(var(--big-background))',
                 card: {
                     DEFAULT: 'hsl(var(--card))',
                     foreground: 'hsl(var(--card-foreground))'
