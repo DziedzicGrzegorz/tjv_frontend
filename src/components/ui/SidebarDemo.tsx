@@ -36,6 +36,13 @@ export function SidebarDemo({children}: {
             ),
         },
         {
+            label: "Shared with me",
+            href: "/dashboard/sharedWithMe",
+            icon: (
+                <IconFiles className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0"/>
+            ),
+        },
+        {
             label: "Groups",
             href: "/dashboard/groups",
             icon: (
@@ -88,7 +95,7 @@ export function SidebarDemo({children}: {
                     </div>
                 </SidebarBody>
             </Sidebar>
-            <main className="flex-1 bg-gray-50">{children}</main>
+            <main className="flex-1 bg-gray-50 overflow-y-auto">{children}</main>
         </div>
     );
 }

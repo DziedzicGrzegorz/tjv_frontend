@@ -2,21 +2,22 @@
 import React, {useEffect, useState} from "react";
 import {toast} from "@/hooks/use-toast";
 import {API_ENDPOINTS} from "@/api/endpoints";
-import {FileDto} from "@/types/api/file";
+import {FileDto, SharedFileWithUserDto} from "@/types/api/file";
 import {apiFetch} from "@/api/client";
 import {FileList} from "@/components/ui/FileList";
 import {apiDownloadFetch} from "@/api/blobFetch";
 
 const FilesPage: React.FC = () => {
-    const [files, setFiles] = useState<FileDto[]>([]);
+    const [sharedFiles, setSharedFiles] = useState<SharedFileWithUserDto[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchUserFiles = async () => {
             setLoading(true);
             try {
-                const data = await apiFetch<FileDto[]>(API_ENDPOINTS.files.userFiles());
-                setFiles(data);
+                const data = await apiFetch<SharedFileWithUserDto[]>(API_ENDPOINTS.sharedFiles.user);
+                console.log(data);
+                setSharedFiles(data);
             } catch (error: unknown) {
                 toast({
                     title: "Error",
@@ -52,8 +53,12 @@ const FilesPage: React.FC = () => {
         }
     };
 
+    // Wyciągamy z sharedFiles tablicę FileDto:
+    const files = sharedFiles.map(shared => shared.file);
+
     return (
         <div className="w-full h-full p-5 dark:bg-background">
+            {/* Teraz przekazujemy FileDto[] do FileList */}
             <FileList files={files} loading={loading} onDownload={handleDownload}/>
         </div>
     );

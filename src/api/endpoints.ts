@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     },
     groups: {
         root: `${BASE_URL}/groups`,
+        byCurrentUser: () => `${BASE_URL}/groups/user`,
         byId: (id: string) => `${BASE_URL}/groups/${id}`,
         addUsers: (id: string) => `${BASE_URL}/groups/${id}/add-users`,
         removeUsers: (id: string) => `${BASE_URL}/groups/${id}/remove-users`,
