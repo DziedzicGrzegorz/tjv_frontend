@@ -47,7 +47,7 @@ const secondaryVariant = {
 export const FileUpload: React.FC<FileUploadProps> = ({onChange, onError}) => {
     const [files, setFiles] = useState<UploadFile[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const filesContainerRef = useRef<HTMLDivElement>(null); // Reference to the files container
+    const filesContainerRef = useRef<HTMLDivElement>(null); // Reference to the uploadFiles container
 
     const handleFileChange = async (newFiles: File[]) => {
         // Assign a unique ID to each file
@@ -59,10 +59,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({onChange, onError}) => {
             success: false,
         }));
 
-        // Prepend new files to the beginning of the list
+        // Prepend new uploadFiles to the beginning of the list
         setFiles((prevFiles) => [...filesWithMeta, ...prevFiles]);
 
-        // Upload all files in parallel
+        // Upload all uploadFiles in parallel
         const uploadPromises = filesWithMeta.map(async (uploadFileMeta) => {
             try {
                 const fileDto = await uploadFile(uploadFileMeta.file);
@@ -112,7 +112,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({onChange, onError}) => {
     };
 
     const {getRootProps, getInputProps, isDragActive} = useDropzone({
-        multiple: true, // Allow multiple files
+        multiple: true, // Allow multiple uploadFiles
         noClick: true,
         onDrop: handleFileChange,
         onDropRejected: (error) => {
@@ -121,7 +121,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({onChange, onError}) => {
         },
     });
 
-    // Effect to scroll to the top whenever 'files' changes
+    // Effect to scroll to the top whenever 'uploadFiles' changes
     useEffect(() => {
         if (filesContainerRef.current) {
             filesContainerRef.current.scrollTop = 0; // Scroll to top
@@ -153,14 +153,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({onChange, onError}) => {
                     <GridPattern/>
                 </div>
                 <div className="flex flex-col items-center justify-center h-full">
-                    <p className="relative z-20 font-sans font-bold text-neutral-700 dark:text-neutral-300 text-base">
+                    <p className="relative z-20 mt-4 text-xl font-sans font-bold text-neutral-700 dark:text-neutral-300 text-base">
                         Upload file
                     </p>
                     <p className="relative z-20 font-sans font-normal text-neutral-400 dark:text-neutral-400 text-base mt-2">
                         Drag or drop your files here or click to upload
                     </p>
-                    <div className="relative w-full mt-10 max-w-xl mx-auto h-full">
-                        {/* Added a scrollbar for the list of files */}
+                    <div className="relative w-full mt-2 max-w-xl mx-auto h-full">
+                        {/* Added a scrollbar for the list of uploadFiles */}
                         <div className="h-full overflow-y-auto" ref={filesContainerRef}>
                             {files.length > 0 &&
                                 files.map((uploadFileMeta) => (
@@ -233,7 +233,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({onChange, onError}) => {
                                         damping: 20,
                                     }}
                                     className={cn(
-                                        "relative group-hover/file:shadow-2xl z-40 bg-white dark:bg-neutral-900 flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md",
+                                        " relative group-hover/file:shadow-2xl z-40 bg-white dark:bg-neutral-900 flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md",
                                         "shadow-[0px_10px_50px_rgba(0,0,0,0.1)]"
                                     )}
                                 >

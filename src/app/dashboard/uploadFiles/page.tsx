@@ -6,11 +6,11 @@ import {useState} from "react";
 import {FileDto} from "@/types/api/file";
 
 export default function FilePage() {
-    // State to keep track of uploaded files and their details
+    // State to keep track of uploaded uploadFiles and their details
     const [globalError, setGlobalError] = useState<string | null>(null);
 
     /**
-     * Handler for when files are uploaded.
+     * Handler for when uploadFiles are uploaded.
      * @param files - Array of FileDto objects returned from the upload.
      */
     const handleFileUpload = (files: FileDto[]) => {

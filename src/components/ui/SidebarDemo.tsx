@@ -22,8 +22,15 @@ export function SidebarDemo({children}: {
             ),
         },
         {
-            label: "Files",
-            href: "/dashboard/files",
+            label: "Upload Files",
+            href: "/dashboard/uploadFiles",
+            icon: (
+                <IconFiles className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0"/>
+            ),
+        },
+        {
+            label: "My Files",
+            href: "/dashboard/myfiles",
             icon: (
                 <IconFiles className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0"/>
             ),
@@ -64,15 +71,16 @@ export function SidebarDemo({children}: {
                             ))}
                         </div>
                     </div>
-                    <div>
+                    <div
+                        onClick={logout}
+                    >
                         <SidebarLink
                             link={{
                                 label: "Logout",
-                                href: "#",
+                                href: "/",
                                 icon: (
                                     <IconArrowLeft
                                         className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0"
-                                        onClick={logout}
                                     />
                                 ),
                             }}

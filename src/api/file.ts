@@ -18,15 +18,6 @@ export async function getFileById(fileId: string): Promise<FileDto | null> {
 }
 
 /**
- * Retrieves all files for a specific user.
- * @param userId - The ID of the user whose files to retrieve.
- * @returns A Promise resolving to an array of FileDto or null.
- */
-export async function getUserFiles(userId: string): Promise<FileDto[] | null> {
-    return apiFetch<FileDto[]>(API_ENDPOINTS.files.userFiles(userId));
-}
-
-/**
  * Uploads a file to the backend.
  * @param file - The file to upload.
  * @returns A Promise resolving to the uploaded FileDto or null.

@@ -18,7 +18,7 @@ export const API_ENDPOINTS = {
         root: `${BASE_URL}/files`,
         uploadFile: `${BASE_URL}/files`,
         byId: (id: string) => `${BASE_URL}/files/${id}`,
-        userFiles: (userId: string) => `${BASE_URL}/files/user/${userId}`,
+        userFiles: () => `${BASE_URL}/files/user`,
         notShared: (userId: string) => `${BASE_URL}/files/user/${userId}/not-shared`,
         allFiles: (userId: string) => `${BASE_URL}/files/all/${userId}`,
         download: (fileId: string) => `${BASE_URL}/files/download/${fileId}`,
