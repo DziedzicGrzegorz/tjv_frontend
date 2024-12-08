@@ -5,15 +5,27 @@ import {motion} from "framer-motion";
 import {cn} from "@/lib/utils";
 import {IconFile} from "@tabler/icons-react";
 import {DownloadButton} from "./DownloadButton";
+import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from "@/components/ui/context-menu";
 
 interface FileListProps {
     files: FileDto[];
     loading?: boolean;
     onDownload: (file: FileDto) => void;
+    onEdit?: (file: FileDto) => void; // opcjonalne
+    onDelete?: (file: FileDto) => void; // opcjonalne
+    disableContextMenu?: boolean; // nowy, opcjonalny prop
     className?: string;
 }
 
-export const FileList: React.FC<FileListProps> = ({files, loading = false, onDownload, className}) => {
+export const FileList: React.FC<FileListProps> = ({
+                                                      files,
+                                                      loading = false,
+                                                      onDownload,
+                                                      onEdit,
+                                                      onDelete,
+                                                      disableContextMenu = false,
+                                                      className,
+                                                  }) => {
     const filesContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -41,70 +53,101 @@ export const FileList: React.FC<FileListProps> = ({files, loading = false, onDow
                 ref={filesContainerRef}
             >
                 {files.length > 0 ? (
-                    files.map((file) => (
-                        <motion.div
-                            key={file.id}
-                            layoutId={`file-${file.id}`}
-                            // Zmieniamy układ na flex-col na mobile i flex-row na większych ekranach
-                            className={cn(
-                                "relative overflow-hidden z-40 bg-white dark:bg-deepBlue flex flex-col sm:flex-row items-stretch justify-between py-4 px-2 mt-4 w-full mx-auto rounded-md shadow-sm"
-                            )}
-                        >
-                            <div className="flex-1 flex flex-col">
-                                <div className="flex justify-between w-full items-center gap-4">
-                                    <motion.div
-                                        initial={{opacity: 0}}
-                                        animate={{opacity: 1}}
-                                        layout
-                                        className="flex items-center gap-2 text-base text-neutral-700 dark:text-neutral-300 truncate max-w-xs"
-                                    >
-                                        <IconFile className="h-5 w-5 text-neutral-600 dark:text-neutral-300"/>
-                                        <span>{file.filename}</span>
-                                    </motion.div>
-                                    <motion.p
-                                        initial={{opacity: 0}}
-                                        animate={{opacity: 1}}
-                                        layout
-                                        className="rounded-lg px-2 py-1 w-fit flex-shrink-0 text-sm text-neutral-600 dark:bg-neutral-800 dark:text-white shadow-input"
-                                    >
-                                        {(file.size / (1024 * 1024)).toFixed(2)} MB
-                                    </motion.p>
+                    files.map((file) => {
+                        const fileContent = (
+                            <motion.div
+                                key={file.id}
+                                layoutId={`file-${file.id}`}
+                                className={cn(
+                                    "relative overflow-hidden z-40 bg-white dark:bg-deepBlue flex flex-col sm:flex-row items-stretch justify-between py-4 px-2 mt-4 w-full mx-auto rounded-md shadow-sm"
+                                )}
+                            >
+                                <div className="flex-1 flex flex-col">
+                                    <div className="flex justify-between w-full items-center gap-4">
+                                        <motion.div
+                                            initial={{opacity: 0}}
+                                            animate={{opacity: 1}}
+                                            layout
+                                            className="flex items-center gap-2 text-base text-neutral-700 dark:text-neutral-300 truncate max-w-xs"
+                                        >
+                                            <IconFile className="h-5 w-5 text-neutral-600 dark:text-neutral-300"/>
+                                            <span>{file.filename}</span>
+                                        </motion.div>
+                                        <motion.p
+                                            initial={{opacity: 0}}
+                                            animate={{opacity: 1}}
+                                            layout
+                                            className="rounded-lg px-2 py-1 w-fit flex-shrink-0 text-sm text-neutral-600 dark:bg-neutral-800 dark:text-white shadow-input"
+                                        >
+                                            {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                        </motion.p>
+                                    </div>
+
+                                    <div
+                                        className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
+                                        <motion.p
+                                            initial={{opacity: 0}}
+                                            animate={{opacity: 1}}
+                                            layout
+                                            className="px-1 py-0.5 rounded-md bg-gray-100 dark:bg-neutral-800"
+                                        >
+                                            {file.fileType || "Unknown Type"}
+                                        </motion.p>
+                                        <motion.p initial={{opacity: 0}} animate={{opacity: 1}} layout>
+                                            Owner: {file.owner.username}
+                                        </motion.p>
+                                    </div>
+
+                                    <div
+                                        className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
+                                        <motion.p initial={{opacity: 0}} animate={{opacity: 1}} layout>
+                                            Version: {file.version}
+                                        </motion.p>
+                                        <motion.p initial={{opacity: 0}} animate={{opacity: 1}} layout>
+                                            Created: {new Date(file.createdAt).toLocaleDateString()}
+                                        </motion.p>
+                                        <motion.p initial={{opacity: 0}} animate={{opacity: 1}} layout>
+                                            Updated: {new Date(file.updatedAt).toLocaleDateString()}
+                                        </motion.p>
+                                    </div>
+                                </div>
+                                <div className="order-last sm:order-none mt-2 sm:mt-0 ml-0 sm:ml-2 w-full sm:w-32">
+                                    <DownloadButton file={file} onDownload={onDownload}/>
                                 </div>
 
-                                <div
-                                    className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
-                                    <motion.p
-                                        initial={{opacity: 0}}
-                                        animate={{opacity: 1}}
-                                        layout
-                                        className="px-1 py-0.5 rounded-md bg-gray-100 dark:bg-neutral-800"
-                                    >
-                                        {file.fileType || "Unknown Type"}
-                                    </motion.p>
-                                    <motion.p initial={{opacity: 0}} animate={{opacity: 1}} layout>
-                                        Owner: {file.owner.username}
-                                    </motion.p>
-                                </div>
+                            </motion.div>
+                        )
 
-                                <div
-                                    className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
-                                    <motion.p initial={{opacity: 0}} animate={{opacity: 1}} layout>
-                                        Version: {file.version}
-                                    </motion.p>
-                                    <motion.p initial={{opacity: 0}} animate={{opacity: 1}} layout>
-                                        Created: {new Date(file.createdAt).toLocaleDateString()}
-                                    </motion.p>
-                                    <motion.p initial={{opacity: 0}} animate={{opacity: 1}} layout>
-                                        Updated: {new Date(file.updatedAt).toLocaleDateString()}
-                                    </motion.p>
-                                </div>
-                            </div>
-                            <div className="order-last sm:order-none mt-2 sm:mt-0 ml-0 sm:ml-2 w-full sm:w-32">
-                                <DownloadButton file={file} onDownload={onDownload}/>
-                            </div>
+                        if (disableContextMenu) {
+                            return fileContent
+                        }
 
-                        </motion.div>
-                    ))
+                        return (
+                            <ContextMenu key={file.id}>
+                                <ContextMenuTrigger asChild>
+                                    {fileContent}
+                                </ContextMenuTrigger>
+                                <ContextMenuContent className="w-48">
+                                    {onEdit && (
+                                        <ContextMenuItem
+                                            className="text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-700 dark:text-yellow-500"
+                                            onSelect={() => onEdit(file)}
+                                        >
+                                            Edit
+                                        </ContextMenuItem>
+                                    )}
+                                    {onDelete && (
+                                        <ContextMenuItem
+                                            className="text-red-600 hover:bg-red-50 dark:hover:bg-red-700 dark:text-red-500"
+                                            onSelect={() => onDelete(file)}
+                                        >
+                                            Delete
+                                        </ContextMenuItem>
+                                    )}
+                                </ContextMenuContent>
+                            </ContextMenu>
+                        );
+                    })
                 ) : (
                     <motion.div
                         layoutId="file-list-empty"

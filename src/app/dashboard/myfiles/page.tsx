@@ -1,60 +1,59 @@
 "use client"
-import React, {useEffect, useState} from "react";
-import {toast} from "@/hooks/use-toast";
-import {API_ENDPOINTS} from "@/api/endpoints";
+import React, {useState} from "react";
+import useFiles from "@/hooks/useFiles";
 import {FileDto} from "@/types/api/file";
-import {apiFetch} from "@/api/client";
 import {FileList} from "@/components/ui/FileList";
-import {apiDownloadFetch} from "@/api/blobFetch";
+import UpdateFileDrawer from "@/components/UpdateFileDrawer";
+import DeleteFileConfirmation from "@/components/DeleteFileConfirmation";
+
 
 const FilesPage: React.FC = () => {
-    const [files, setFiles] = useState<FileDto[]>([]);
-    const [loading, setLoading] = useState(false);
+    const {files, loading, handleDownload, handleDelete} = useFiles();
 
-    useEffect(() => {
-        const fetchUserFiles = async () => {
-            setLoading(true);
-            try {
-                const data = await apiFetch<FileDto[]>(API_ENDPOINTS.files.userFiles());
-                setFiles(data);
-            } catch (error: unknown) {
-                toast({
-                    title: "Error",
-                    description: (error as Error).message || "Failed to load files.",
-                    variant: "destructive",
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
+    const [isDeleteOpen, setDeleteOpen] = useState(false);
+    const [isUpdateOpen, setUpdateOpen] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<FileDto | null>(null);
 
-        fetchUserFiles();
-    }, []);
-
-    const handleDownload = async (file: FileDto) => {
-        try {
-            const blob = await apiDownloadFetch(API_ENDPOINTS.files.download(file.id), {method: 'GET'});
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file.filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error: unknown) {
-            console.error(error);
-            toast({
-                title: "Download Error",
-                description: (error as Error).message || "Failed to download the file.",
-                variant: "destructive",
-            });
-        }
+    const openUpdateModal = (file: FileDto) => {
+        setSelectedFile(file);
+        setUpdateOpen(true);
     };
 
+    const openDeleteModal = (file: FileDto) => {
+        setSelectedFile(file);
+        setDeleteOpen(true);
+    };
+
+    const userCanEditAndDelete = true;
+
     return (
-        <div className="w-full h-full p-5 dark:bg-background">
-            <FileList files={files} loading={loading} onDownload={handleDownload}/>
+        <div className="w-full h-full p-10 dark:bg-background">
+            <div className="h-4/5 overflow-y-auto pt-20">
+                <FileList
+                    files={files}
+                    loading={loading}
+                    onDownload={handleDownload}
+                    onEdit={openUpdateModal}
+                    onDelete={openDeleteModal}
+                    disableContextMenu={!userCanEditAndDelete}
+                />
+            </div>
+            {isUpdateOpen && selectedFile && (
+                <UpdateFileDrawer
+                    isOpen={isUpdateOpen}
+                    setOpen={setUpdateOpen}
+                    file={selectedFile}
+                    // onFileUpdated={handleUpdate}
+                />
+            )}
+            {isDeleteOpen && selectedFile && (
+                <DeleteFileConfirmation
+                    isOpen={isDeleteOpen}
+                    setOpen={setDeleteOpen}
+                    file={selectedFile}
+                    onDelete={handleDelete}
+                />
+            )}
         </div>
     );
 };

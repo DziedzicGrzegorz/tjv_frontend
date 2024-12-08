@@ -42,7 +42,7 @@ export default function GroupsPage() {
     }));
 
     return (
-        <div className="relative w-full h-full p-5 dark:bg-background">
+        <div className="relative w-full min-h-full p-5 bg-background">
             <div className="flex items-center justify-end mb-5">
                 <button
                     onClick={handleAddGroup}

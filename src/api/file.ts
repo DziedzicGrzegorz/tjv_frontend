@@ -32,6 +32,16 @@ export async function uploadFile(file: File): Promise<FileDto | null> {
     });
 }
 
+export async function editFile(file: File, id: string): Promise<FileDto | null> {
+    const formData = new FormData();
+    formData.append("updatedFile", file);
+
+    return apiUploadFetch<FileDto>(API_ENDPOINTS.files.editFile(id), {
+        method: "PUT",
+        body: formData,
+    });
+}
+
 export async function apiUploadFetch<T>(
     url: string,
     options?: RequestInit

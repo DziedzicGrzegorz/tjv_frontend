@@ -1,85 +1,75 @@
-"use client";
-
-import React, {useEffect, useState} from "react";
+"use client"
+import {DataTable} from '@/components/DataTable/DataTable';
+import {UserDto} from '@/types/api/user';
+import {useEffect, useState} from "react";
+import useUserColumns from "@/hooks/useUserColumn";
+import {apiFetch} from "@/api/client";
+import {API_ENDPOINTS} from "@/api/endpoints";
 import {useParams} from "next/navigation";
 import {toast} from "@/hooks/use-toast";
-import {API_ENDPOINTS} from "@/api/endpoints";
-import {apiFetch} from "@/api/client";
-import {GroupDto} from "@/types/api/group";
 
-export default function GroupUsersPage() {
+const UsersPage = () => {
+    const [isAddOpen, setAddOpen] = useState(false);
+    const [isDeleteOpen, setDeleteOpen] = useState(false);
+    const [isUpdateOpen, setUpdateOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
+    const [users, setUsers] = useState<UserDto[] | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    //get id from router
     const {id} = useParams() as {
         id: string
     };
-    const [group, setGroup] = useState<GroupDto | null>(null);
-    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchGroup = async () => {
-            setLoading(true);
-            try {
-                const data = await apiFetch<GroupDto>(API_ENDPOINTS.groups.byId(id));
-                setGroup(data);
-            } catch (error: unknown) {
-                toast({
-                    title: "Error",
-                    description: (error as Error).message || "Failed to load group users.",
-                    variant: "destructive",
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (id) {
-            fetchGroup();
+    const fetchGroupUsers = async (page: number, size: number) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await apiFetch<UserDto[]>(
+                API_ENDPOINTS.groups.usersInGroup(id)
+            );
+            console.log("Group users data:", data);
+            setUsers(data);
+        } catch (error: unknown) {
+            const errorMessage =
+                (error as Error).message || "Failed to load group users.";
+            setError(errorMessage);
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
         }
-    }, [id]);
+    };
+    //fetch group users on component mount
+    useEffect(() => {
+        fetchGroupUsers(0, 10);
+    }, []);
+    const handleEdit = (user: UserDto) => {
+        setSelectedUser(user);
+        setUpdateOpen(true);
+    };
 
-    if (loading) {
-        return (
-            <div className="w-full h-full p-5 dark:bg-background flex items-center justify-center">
-                <p className="text-gray-700 dark:text-gray-300">Loading users...</p>
-            </div>
-        );
-    }
+    const {userColumns} = useUserColumns(handleEdit);
 
-    if (!group) {
-        return (
-            <div className="w-full h-full p-5 dark:bg-background flex items-center justify-center">
-                <p className="text-gray-700 dark:text-gray-300">Group not found.</p>
-            </div>
-        );
+    if (!users) {
+        return <div>Ładowanie...</div>;
     }
 
     return (
-        <div className="w-full h-full p-5 dark:bg-background">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                Users in {group.name}
-            </h1>
-            {group.userRoles && group.userRoles.length > 0 ? (
-                <table className="min-w-full border-collapse bg-white dark:bg-neutral-800">
-                    <thead>
-                    <tr className="border-b dark:border-neutral-700">
-                        <th className="text-left p-2 text-gray-700 dark:text-gray-200">ID</th>
-                        <th className="text-left p-2 text-gray-700 dark:text-gray-200">Role</th>
-                        <th className="text-left p-2 text-gray-700 dark:text-gray-200">Joined At</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {group.userRoles.map((role) => (
-                        <tr key={role.id}
-                            className="border-b dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-700 transition">
-                            <td className="p-2 text-gray-700 dark:text-gray-300">{role.id}</td>
-                            <td className="p-2 text-gray-700 dark:text-gray-300">{role.role}</td>
-                            <td className="p-2 text-gray-700 dark:text-gray-300">{role.joinedAt}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            ) : (
-                <p className="text-gray-700 dark:text-gray-300">No users found.</p>
-            )}
+        <div
+            className="bg-background h-full"
+        >
+            <DataTable<UserDto>
+                data={users}
+                columns={userColumns}
+                defaultSorting={[{id: 'username', desc: false}]}
+            />
+
         </div>
     );
-}
+};
+
+export default UsersPage;
