@@ -9,6 +9,13 @@ export interface GroupDto {
     sharedFiles?: SharedFileWithGroupDto[];
 }
 
+// ShortGroupDto represents a simplified group in the system.
+export interface ShortGroupDto {
+    id: string; // uuid
+    name: string;
+    description: string;
+}
+
 // CreateGroupRequest represents the data needed to create a new group.
 export interface CreateGroupRequest {
     name: string; // maxLength: 100

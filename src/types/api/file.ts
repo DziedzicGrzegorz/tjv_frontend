@@ -1,5 +1,6 @@
 // FileDto represents a file in the system.
 import {UserShortDto} from "@/types/api/user";
+import {ShortGroupDto} from "@/types/api/group";
 
 export interface FileDto {
     id: string; // uuid
@@ -23,6 +24,7 @@ export interface FileSharingWithUserRequest {
 export interface SharedFileWithUserDto {
     id: string; // uuid
     file: FileDto;
+    sharedWith: UserShortDto;
     permission: string;
     sharedAt: string; // date-time
 }
@@ -32,6 +34,8 @@ export interface FileSharingWithGroupRequest {
     fileId: string; // uuid
     groupId: string; // uuid
     permission: 'READ' | 'WRITE';
+    group: ShortGroupDto;
+    sharedAt: string; // date-time
 }
 
 // SharedFileWithGroupDto represents a file that has been shared with a group.

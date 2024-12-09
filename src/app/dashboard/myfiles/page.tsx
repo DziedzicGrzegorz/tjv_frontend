@@ -1,20 +1,33 @@
-"use client"
+// src/pages/myfiles/page.tsx
+"use client";
+
 import React, {useState} from "react";
 import useFiles from "@/hooks/useFiles";
-import {FileDto} from "@/types/api/file";
+import {FileDto, SharedFileWithUserDto} from "@/types/api/file";
 import {FileList} from "@/components/ui/FileList";
 import UpdateFileDrawer from "@/components/UpdateFileDrawer";
 import DeleteFileConfirmation from "@/components/DeleteFileConfirmation";
 import ShareFileDialog from "@/components/ShareFileDialog";
-
+import StopSharingDialog from "@/components/StopSharingDialog";
 
 const FilesPage: React.FC = () => {
-    const {files, loading, handleDownload, handleDelete, handleUpdate, handleShareWithUser} = useFiles();
+    const {
+        files,
+        loading,
+        handleDownload,
+        handleDelete,
+        handleShareWithUser,
+        getSharedUsers,
+        fetchUserFiles,
+    } = useFiles();
 
     const [isDeleteOpen, setDeleteOpen] = useState(false);
     const [isUpdateOpen, setUpdateOpen] = useState(false);
     const [isShareOpen, setShareOpen] = useState(false);
+    const [isStopSharingOpen, setStopSharingOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<FileDto | null>(null);
+    const [sharedUsers, setSharedUsers] = useState<SharedFileWithUserDto[]>([]);
+    const [loadingSharedUsers, setLoadingSharedUsers] = useState(false);
 
     const openUpdateModal = (file: FileDto) => {
         setSelectedFile(file);
@@ -33,6 +46,18 @@ const FilesPage: React.FC = () => {
     const shareFile = async (fileId: string, userId: string, permission: 'READ' | 'WRITE') => {
         await handleShareWithUser({fileId, userId, permission});
     };
+    const openStopSharingModal = async (file: FileDto) => {
+        setSelectedFile(file);
+        setStopSharingOpen(true);
+        setLoadingSharedUsers(true);
+        const shared = await getSharedUsers(file.id);
+        setSharedUsers(shared);
+        setLoadingSharedUsers(false);
+    };
+
+    const handleFilesRefresh = () => {
+        fetchUserFiles();
+    };
 
     const userCanEditAndDelete = true;
 
@@ -46,6 +71,7 @@ const FilesPage: React.FC = () => {
                     onEdit={openUpdateModal}
                     onDelete={openDeleteModal}
                     onShare={openShareModal}
+                    onStopShare={openStopSharingModal}
                     disableContextMenu={!userCanEditAndDelete}
                 />
             </div>
@@ -54,8 +80,7 @@ const FilesPage: React.FC = () => {
                     isOpen={isUpdateOpen}
                     setOpen={setUpdateOpen}
                     file={selectedFile}
-                    refetchFiles={handleUpdate}
-                    // onFileUpdated={handleUpdate}
+                    refetchFiles={handleFilesRefresh}
                 />
             )}
             {isDeleteOpen && selectedFile && (
@@ -72,6 +97,15 @@ const FilesPage: React.FC = () => {
                     setOpen={setShareOpen}
                     file={selectedFile}
                     onShare={shareFile}
+                />
+            )}
+            {isStopSharingOpen && selectedFile && (
+                <StopSharingDialog
+                    isOpen={isStopSharingOpen}
+                    setOpen={setStopSharingOpen}
+                    file={selectedFile}
+                    sharedUsers={sharedUsers}
+                    refreshFiles={handleFilesRefresh}
                 />
             )}
         </div>

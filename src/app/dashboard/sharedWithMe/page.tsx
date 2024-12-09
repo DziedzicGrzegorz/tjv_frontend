@@ -2,14 +2,15 @@
 import React, {useEffect, useState} from "react";
 import {toast} from "@/hooks/use-toast";
 import {API_ENDPOINTS} from "@/api/endpoints";
-import {FileDto, SharedFileWithUserDto} from "@/types/api/file";
+import {SharedFileWithUserDto} from "@/types/api/file";
 import {apiFetch} from "@/api/client";
 import {FileList} from "@/components/ui/FileList";
-import {apiDownloadFetch} from "@/api/blobFetch";
+import useFiles from "@/hooks/useFiles";
 
 const FilesPage: React.FC = () => {
     const [sharedFiles, setSharedFiles] = useState<SharedFileWithUserDto[]>([]);
     const [loading, setLoading] = useState(false);
+    const {handleDownload} = useFiles();
 
     useEffect(() => {
         const fetchUserFiles = async () => {
@@ -31,27 +32,6 @@ const FilesPage: React.FC = () => {
 
         fetchUserFiles();
     }, []);
-
-    const handleDownload = async (file: FileDto) => {
-        try {
-            const blob = await apiDownloadFetch(API_ENDPOINTS.files.download(file.id), {method: 'GET'});
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file.filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error: unknown) {
-            console.error(error);
-            toast({
-                title: "Download Error",
-                description: (error as Error).message || "Failed to download the file.",
-                variant: "destructive",
-            });
-        }
-    };
 
     // Wyciągamy z sharedFiles tablicę FileDto:
     const files = sharedFiles.map(shared => shared.file);

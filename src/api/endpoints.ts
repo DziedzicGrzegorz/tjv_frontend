@@ -37,6 +37,10 @@ export const API_ENDPOINTS = {
             `${BASE_URL}/shared-files/user/${userId}/file/${fileId}`,
         unshareGroup: (groupId: string, fileId: string) =>
             `${BASE_URL}/shared-files/group/${groupId}/file/${fileId}`,
+        sharedByMeWithUsers: () => "/shared-files/user/shared-by-me",
+        sharedByMeWithGroups: () => "/shared-files/group/shared-by-me",
+        deleteSharedWithUser: (userId: string, fileId: string) => `/shared-files/user/${userId}/file/${fileId}`,
+        getSharedFileWithUsers: (fileId: string) => `${BASE_URL}/shared-files/file/${fileId}/users`,
     },
     auth: {
         login: `${BASE_URL}/auth/authenticate`,
