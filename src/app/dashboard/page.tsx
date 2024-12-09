@@ -1,37 +1,12 @@
+// src/pages/dashboard/page.tsx
+
 "use client";
 
-import React, {useEffect, useState} from "react";
-import {useAuth} from "@/contenxt/AuthContext";
-import {API_ENDPOINTS} from "@/api/endpoints";
-import {apiFetch} from "@/api/client";
-import {UserDto} from "@/types/api/user";
+import React from "react";
+import {useCurrentUser} from "@/hooks/useUser";
 
 const Dashboard = () => {
-    const {logout} = useAuth();
-    const [user, setUser] = useState<UserDto | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchCurrentUser = async () => {
-        setLoading(true);
-        setError(null);
-        setUser(null);
-
-        try {
-            const data = await apiFetch<UserDto>(API_ENDPOINTS.users.current); // Fetch current user
-            console.log("Current user data:", data);
-            setUser(data);
-        } catch (err: unknown) {
-            setError((err as Error).message || "An unknown error occurred");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Fetch current user on component mount
-    useEffect(() => {
-        fetchCurrentUser();
-    }, []);
+    const {currentUser, loading, error, fetchCurrentUser} = useCurrentUser();
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-background">
@@ -44,26 +19,26 @@ const Dashboard = () => {
 
                 {loading && <p className="text-gray-700 dark:text-gray-300 mt-4">Loading...</p>}
                 {error && <p className="text-red-500 mt-2">{error}</p>}
-                {user && (
+                {currentUser && (
                     <div className="mt-4">
                         <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
                             User Information
                         </h3>
                         <p className="text-gray-700 dark:text-gray-300">
-                            <strong>ID:</strong> {user.id}
+                            <strong>ID:</strong> {currentUser.id}
                         </p>
                         <p className="text-gray-700 dark:text-gray-300">
-                            <strong>Username:</strong> {user.username}
+                            <strong>Username:</strong> {currentUser.username}
                         </p>
                         <p className="text-gray-700 dark:text-gray-300">
-                            <strong>Email:</strong> {user.email}
+                            <strong>Email:</strong> {currentUser.email}
                         </p>
 
-                        {user.roles && (
+                        {currentUser.roles && (
                             <div className="mt-2">
                                 <strong className="text-gray-700 dark:text-gray-300">Roles:</strong>
                                 <ul className="list-disc pl-6">
-                                    {user.roles.map((role, index) => (
+                                    {currentUser.roles.map((role, index) => (
                                         <li key={index} className="text-gray-700 dark:text-gray-300">
                                             {role}
                                         </li>
@@ -72,11 +47,11 @@ const Dashboard = () => {
                             </div>
                         )}
 
-                        {user.groupRoles && (
+                        {currentUser.groupRoles && (
                             <div className="mt-2">
                                 <strong className="text-gray-700 dark:text-gray-300">Group Roles:</strong>
                                 <ul className="list-disc pl-6">
-                                    {user.groupRoles.map((groupRole, index) => (
+                                    {currentUser.groupRoles.map((groupRole, index) => (
                                         <li key={index} className="text-gray-700 dark:text-gray-300">
                                             <strong>Group:</strong> {groupRole.group.name}, <strong>Role:</strong> {groupRole.role}
                                         </li>
@@ -85,11 +60,11 @@ const Dashboard = () => {
                             </div>
                         )}
 
-                        {user.sharedFiles && (
+                        {currentUser.sharedFiles && (
                             <div className="mt-2">
                                 <strong className="text-gray-700 dark:text-gray-300">Shared Files:</strong>
                                 <ul className="list-disc pl-6">
-                                    {user.sharedFiles.map((file, index) => (
+                                    {currentUser.sharedFiles.map((file, index) => (
                                         <li key={index} className="text-gray-700 dark:text-gray-300">
                                             <strong>File:</strong> {file.id}, <strong>Access:</strong> {file.permission}
                                         </li>
@@ -102,13 +77,25 @@ const Dashboard = () => {
             </div>
 
             <button
-                onClick={logout}
+                onClick={() => {
+                    fetchCurrentUser();
+                }}
+                className="mt-6 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-all"
+            >
+                Refresh User Data
+            </button>
+
+            <button
+                onClick={() => {
+                    // Implementacja funkcji logout
+                }}
                 className="mt-6 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-all"
             >
                 Logout
             </button>
         </div>
     );
+
 };
 
 export default Dashboard;

@@ -1,7 +1,7 @@
 // src/hooks/useUser.tsx
 "use client";
 
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {toast} from "@/hooks/use-toast";
 import {API_ENDPOINTS} from "@/api/endpoints";
 import {apiFetch} from "@/api/client";
@@ -18,7 +18,7 @@ const useUser = () => {
             const data = await apiFetch<UserDto>(API_ENDPOINTS.users.byEmail(email));
             setUser(data);
             setError(null);
-            return data; // Zwróć dane użytkownika po udanym pobraniu
+            return data;
         } catch (error: unknown) {
             const message = (error as Error).message || "Failed to load user.";
             toast({
@@ -41,5 +41,41 @@ const useUser = () => {
         fetchUserByEmail,
     };
 };
+const useCurrentUser = () => {
+    const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
-export default useUser;
+    const fetchCurrentUser = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        setCurrentUser(null);
+
+        try {
+            const data = await apiFetch<UserDto>(API_ENDPOINTS.users.current); // Fetch current user
+            console.log("Current user data:", data);
+            setCurrentUser(data);
+        } catch (err: unknown) {
+            setError((err as Error).message || "An unknown error occurred");
+            toast({
+                title: "Error",
+                description: (err as Error).message || "An unknown error occurred",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchCurrentUser();
+    }, [fetchCurrentUser]);
+
+    return {
+        currentUser,
+        loading,
+        error,
+        fetchCurrentUser,
+    };
+};
+export {useUser, useCurrentUser};

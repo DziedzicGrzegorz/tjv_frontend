@@ -1,5 +1,6 @@
 // GroupDto represents a group in the system.
 import {SharedFileWithGroupDto} from "@/types/api/file";
+import {UserShortDto} from "@/types/api/user";
 
 export interface GroupDto {
     id: string; // uuid
@@ -50,4 +51,5 @@ export interface UserGroupRoleShortDto {
     id: string; // uuid
     role: 'MEMBER' | 'ADMIN' | 'FOUNDER';
     joinedAt: string; // date-time
+    user: UserShortDto;
 }

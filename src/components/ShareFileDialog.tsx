@@ -28,7 +28,7 @@ import {SubmitHandler, useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import {toast} from "@/hooks/use-toast";
-import useUser from "@/hooks/useUser";
+import {useUser} from "@/hooks/useUser";
 
 interface ShareFileFormInputs {
     email: string;

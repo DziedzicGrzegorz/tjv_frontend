@@ -1,70 +1,64 @@
+// src/pages/groups/[id]/page.tsx
+
 "use client";
 
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import {useParams} from "next/navigation";
-import {toast} from "@/hooks/use-toast";
-import {API_ENDPOINTS} from "@/api/endpoints";
-import {apiFetch} from "@/api/client";
-import {GroupDto} from "@/types/api/group";
-import {FileDto} from "@/types/api/file";
+import {useGroupWithFiles} from "@/hooks/useGroups";
 import {FileList} from "@/components/ui/FileList";
-import {apiDownloadFetch} from "@/api/blobFetch";
+
 import Link from "next/link";
+
+import useFiles from "@/hooks/useFiles";
 
 const GroupDetailsPage: React.FC = () => {
     const {id} = useParams() as {
         id: string
     };
-    const [group, setGroup] = useState<GroupDto | null>(null);
-    const [loading, setLoading] = useState(false);
+    const {group, files, loading, error, fetchGroupWithFiles} = useGroupWithFiles();
+    const {
+        handleDownload,
+    } = useFiles();
 
     useEffect(() => {
-        const fetchGroup = async () => {
-            setLoading(true);
-            try {
-                const data = await apiFetch<GroupDto>(API_ENDPOINTS.groups.byId(id));
-                setGroup(data);
-            } catch (error: unknown) {
-                toast({
-                    title: "Error",
-                    description: (error as Error).message || "Failed to load group.",
-                    variant: "destructive",
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (id) {
-            fetchGroup();
+            fetchGroupWithFiles(id);
         }
-    }, [id]);
+    }, [id, fetchGroupWithFiles]);
 
-    const handleDownload = async (file: FileDto) => {
-        try {
-            const blob = await apiDownloadFetch(API_ENDPOINTS.files.download(file.id), {method: 'GET'});
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file.filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error: unknown) {
-            console.error(error);
-            toast({
-                title: "Download Error",
-                description: (error as Error).message || "Failed to download the file.",
-                variant: "destructive",
-            });
-        }
-    };
+    // const handleDownload = async (file: FileDto) => {
+    //     try {
+    //         const blob = await apiDownloadFetch(API_ENDPOINTS.files.download(file.id), {method: 'GET'});
+    //         const url = window.URL.createObjectURL(blob);
+    //         const a = document.createElement('a');
+    //         a.href = url;
+    //         a.download = file.filename;
+    //         document.body.appendChild(a);
+    //         a.click();
+    //         a.remove();
+    //         window.URL.revokeObjectURL(url);
+    //     } catch (error: unknown) {
+    //         console.error(error);
+    //         toast({
+    //             title: "Download Error",
+    //             description: (error as Error).message || "Failed to download the file.",
+    //             variant: "destructive",
+    //         });
+    //     }
+    // };
 
     if (loading) {
         return (
             <div className="w-full h-full p-5 dark:bg-background flex items-center justify-center">
                 <p className="text-gray-700 dark:text-gray-300">Loading group details...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="w-full h-full p-5 dark:bg-background flex items-center justify-center">
+                <p className="text-red-600">{error}</p>
             </div>
         );
     }
@@ -77,11 +71,8 @@ const GroupDetailsPage: React.FC = () => {
         );
     }
 
-    // Wyciągamy pliki z group.sharedFiles
-    const files = group.sharedFiles?.map(sf => sf.file) || [];
-
     return (
-        <div className="w-full h-full p-5 dark:bg-background">
+        <div className="w-full min-h-full p-5 dark:bg-background">
             <div className="flex justify-between items-center mb-5">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{group.name}</h1>
@@ -100,9 +91,8 @@ const GroupDetailsPage: React.FC = () => {
                 </Link>
             </div>
 
-
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-4">Files in this group</h2>
-            <FileList files={files} loading={false} onDownload={handleDownload}/>
+            <FileList files={files} loading={false} onDownload={handleDownload} disableContextMenu={true}/>
         </div>
     );
 };
