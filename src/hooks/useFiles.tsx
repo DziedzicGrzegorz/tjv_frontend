@@ -15,6 +15,7 @@ const useFiles = () => {
         setLoading(true);
         try {
             const data = await apiFetch<FileDto[]>(API_ENDPOINTS.files.userFiles());
+            console.log("seeting new files")
             setFiles(data);
         } catch (error: unknown) {
             const message = (error as Error).message || "Failed to load files.";
@@ -77,22 +78,12 @@ const useFiles = () => {
         }
     }, []);
 
-    const handleUpdate = useCallback(async (updatedFile: FileDto) => {
+    const handleUpdate = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await apiFetch<FileDto>(API_ENDPOINTS.files.update(updatedFile.id), {
-                method: 'PUT',
-                body: JSON.stringify(updatedFile),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            setFiles(prevFiles => prevFiles.map(file => file.id === response.id ? response : file));
-            toast({
-                title: "Success",
-                description: "File updated successfully.",
-                variant: "default",
-            });
+            console.log("refetching from hook update")
+            await fetchUserFiles();
+
         } catch (error: unknown) {
             const message = (error as Error).message || "Failed to update the file.";
             toast({

@@ -14,6 +14,7 @@ interface EditFileUploadProps {
     existingFile: FileDto; // Informacje o istniejącym pliku
     onFileUpdated: (updatedFile: FileDto) => void; // Callback po udanej aktualizacji
     onError: (error: string) => void;
+    refetchFiles: () => void;
 }
 
 interface UploadFile {
@@ -23,6 +24,7 @@ interface UploadFile {
     error: string | null;
     success: boolean;
     fileDto?: FileDto | null; // Opcjonalne, ustawiane po udanym przesłaniu
+
 }
 
 const mainVariant = {
@@ -50,12 +52,14 @@ export const EditFile: React.FC<EditFileUploadProps> = ({
                                                             existingFile,
                                                             onFileUpdated,
                                                             onError,
+                                                            refetchFiles
                                                         }) => {
     const [file, setFile] = useState<UploadFile | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const filesContainerRef = useRef<HTMLDivElement>(null); // Referencja do kontenera pliku
 
     const handleFileChange = async (newFile: File) => {
+
         const uploadFileMeta: UploadFile = {
             file: newFile,
             id: `${newFile.name}-${newFile.size}-${newFile.lastModified}-${Math.random()}`,
@@ -76,6 +80,7 @@ export const EditFile: React.FC<EditFileUploadProps> = ({
             // Aktualizacja stanu
             setFile({...uploadFileMeta, uploading: false, success: true, fileDto: updatedFileDto});
 
+            refetchFiles()
             // Callback do rodzica
             onFileUpdated(updatedFileDto);
         } catch (uploadError: any) {

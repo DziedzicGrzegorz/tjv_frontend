@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import {useEffect} from "react"
 
 import {Button} from "@/components/ui/button"
 import {
@@ -19,16 +20,23 @@ interface UpdateFileProps {
     isOpen: boolean;
     setOpen: (open: boolean) => void;
     file: FileDto;
+    refetchFiles: () => void;
 }
 
-const handleFileUpload = (file: FileDto) => {
-    console.log("Uploaded Files:", file);
+const handleFileUpload = () => {
+    // console.log("Uploaded Files:", file);
+
     // Optionally, reset global error if any
 };
 const handleUploadError = (error: string) => {
     console.error("Upload Error:", error);
 };
-export default function UpdateFileDrawer({isOpen, setOpen, file}: UpdateFileProps) {
+export default function UpdateFileDrawer({isOpen, setOpen, file, refetchFiles}: UpdateFileProps) {
+    useEffect(() => {
+        console.log("File to update:", file);
+        console.log("refetch")
+        refetchFiles();
+    }, [file, refetchFiles]);
 
     return (
         <Drawer open={isOpen} onOpenChange={setOpen}>
@@ -42,6 +50,7 @@ export default function UpdateFileDrawer({isOpen, setOpen, file}: UpdateFileProp
                         existingFile={file}
                         onFileUpdated={handleFileUpload}
                         onError={handleUploadError}
+                        refetchFiles={refetchFiles}
                     />
 
                     <DrawerFooter>

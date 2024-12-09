@@ -8,7 +8,7 @@ import DeleteFileConfirmation from "@/components/DeleteFileConfirmation";
 
 
 const FilesPage: React.FC = () => {
-    const {files, loading, handleDownload, handleDelete} = useFiles();
+    const {files, loading, handleDownload, handleDelete, handleUpdate} = useFiles();
 
     const [isDeleteOpen, setDeleteOpen] = useState(false);
     const [isUpdateOpen, setUpdateOpen] = useState(false);
@@ -43,6 +43,7 @@ const FilesPage: React.FC = () => {
                     isOpen={isUpdateOpen}
                     setOpen={setUpdateOpen}
                     file={selectedFile}
+                    refetchFiles={handleUpdate}
                     // onFileUpdated={handleUpdate}
                 />
             )}
