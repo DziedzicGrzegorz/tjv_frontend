@@ -13,6 +13,7 @@ interface FileListProps {
     onDownload: (file: FileDto) => void;
     onEdit?: (file: FileDto) => void; // opcjonalne
     onDelete?: (file: FileDto) => void; // opcjonalne
+    onShare?: (file: FileDto) => void; //
     disableContextMenu?: boolean; // nowy, opcjonalny prop
     className?: string;
 }
@@ -23,6 +24,7 @@ export const FileList: React.FC<FileListProps> = ({
                                                       onDownload,
                                                       onEdit,
                                                       onDelete,
+                                                      onShare,
                                                       disableContextMenu = false,
                                                       className,
                                                   }) => {
@@ -142,6 +144,14 @@ export const FileList: React.FC<FileListProps> = ({
                                             onSelect={() => onDelete(file)}
                                         >
                                             Delete
+                                        </ContextMenuItem>
+                                    )}
+                                    {onShare && (
+                                        <ContextMenuItem
+                                            className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-700 dark:text-blue-500"
+                                            onSelect={() => onShare(file)}
+                                        >
+                                            Share
                                         </ContextMenuItem>
                                     )}
                                 </ContextMenuContent>

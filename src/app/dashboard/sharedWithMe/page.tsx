@@ -59,7 +59,7 @@ const FilesPage: React.FC = () => {
     return (
         <div className="w-full h-full p-5 dark:bg-background">
             {/* Teraz przekazujemy FileDto[] do FileList */}
-            <FileList files={files} loading={loading} onDownload={handleDownload}/>
+            <FileList files={files} loading={loading} onDownload={handleDownload} disableContextMenu={true}/>
         </div>
     );
 };

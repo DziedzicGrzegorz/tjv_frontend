@@ -5,13 +5,15 @@ import {FileDto} from "@/types/api/file";
 import {FileList} from "@/components/ui/FileList";
 import UpdateFileDrawer from "@/components/UpdateFileDrawer";
 import DeleteFileConfirmation from "@/components/DeleteFileConfirmation";
+import ShareFileDialog from "@/components/ShareFileDialog";
 
 
 const FilesPage: React.FC = () => {
-    const {files, loading, handleDownload, handleDelete, handleUpdate} = useFiles();
+    const {files, loading, handleDownload, handleDelete, handleUpdate, handleShareWithUser} = useFiles();
 
     const [isDeleteOpen, setDeleteOpen] = useState(false);
     const [isUpdateOpen, setUpdateOpen] = useState(false);
+    const [isShareOpen, setShareOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<FileDto | null>(null);
 
     const openUpdateModal = (file: FileDto) => {
@@ -22,6 +24,14 @@ const FilesPage: React.FC = () => {
     const openDeleteModal = (file: FileDto) => {
         setSelectedFile(file);
         setDeleteOpen(true);
+    };
+    const openShareModal = (file: FileDto) => {
+        setSelectedFile(file);
+        setShareOpen(true);
+    };
+
+    const shareFile = async (fileId: string, userId: string, permission: 'READ' | 'WRITE') => {
+        await handleShareWithUser({fileId, userId, permission});
     };
 
     const userCanEditAndDelete = true;
@@ -35,6 +45,7 @@ const FilesPage: React.FC = () => {
                     onDownload={handleDownload}
                     onEdit={openUpdateModal}
                     onDelete={openDeleteModal}
+                    onShare={openShareModal}
                     disableContextMenu={!userCanEditAndDelete}
                 />
             </div>
@@ -53,6 +64,14 @@ const FilesPage: React.FC = () => {
                     setOpen={setDeleteOpen}
                     file={selectedFile}
                     onDelete={handleDelete}
+                />
+            )}
+            {isShareOpen && selectedFile && (
+                <ShareFileDialog
+                    isOpen={isShareOpen}
+                    setOpen={setShareOpen}
+                    file={selectedFile}
+                    onShare={shareFile}
                 />
             )}
         </div>

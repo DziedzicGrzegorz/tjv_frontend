@@ -2,7 +2,7 @@
 import {useCallback, useEffect, useState} from "react";
 import {toast} from "@/hooks/use-toast";
 import {API_ENDPOINTS} from "@/api/endpoints";
-import {FileDto} from "@/types/api/file";
+import {FileDto, FileSharingWithUserRequest} from "@/types/api/file";
 import {apiFetch} from "@/api/client";
 import {apiDownloadFetch} from "@/api/blobFetch";
 
@@ -97,6 +97,31 @@ const useFiles = () => {
         }
     }, []);
 
+    const handleShareWithUser = useCallback(async (fileSharingWithUserRequest: FileSharingWithUserRequest) => {
+        setLoading(true);
+        try {
+            await apiFetch(API_ENDPOINTS.sharedFiles.userById, {
+                method: 'POST',
+                body: JSON.stringify(fileSharingWithUserRequest)
+            });
+            toast({
+                title: "Success",
+                description: "File shared successfully.",
+                variant: "default",
+            });
+        } catch (error: unknown) {
+            const message = (error as Error).message || "Failed to share the file.";
+            toast({
+                title: "Share Error",
+                description: message,
+                variant: "destructive",
+            });
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         files,
         loading,
@@ -105,7 +130,9 @@ const useFiles = () => {
         handleDownload,
         handleDelete,
         handleUpdate,
+        handleShareWithUser
     };
 };
+
 
 export default useFiles;

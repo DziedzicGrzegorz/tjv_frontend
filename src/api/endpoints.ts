@@ -31,7 +31,7 @@ export const API_ENDPOINTS = {
     sharedFiles: {
         user: `${BASE_URL}/shared-files/user`,
         group: `${BASE_URL}/shared-files/group`,
-        userById: (userId: string) => `${BASE_URL}/shared-files/user/${userId}`,
+        userById: `${BASE_URL}/shared-files/user`,
         groupById: (groupId: string) => `${BASE_URL}/shared-files/group/${groupId}`,
         unshareUser: (userId: string, fileId: string) =>
             `${BASE_URL}/shared-files/user/${userId}/file/${fileId}`,
