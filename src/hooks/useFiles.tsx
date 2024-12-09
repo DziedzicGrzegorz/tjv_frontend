@@ -17,6 +17,7 @@ const useFiles = () => {
             const data = await apiFetch<FileDto[]>(API_ENDPOINTS.files.userFiles());
             console.log("setting new files");
             setFiles(data);
+            return data;
         } catch (error: unknown) {
             const message = (error as Error).message || "Failed to load files.";
             toast({
@@ -158,12 +159,12 @@ const useFiles = () => {
             return data;
         } catch (error: unknown) {
             const message = (error as Error).message || "Failed to fetch shared users.";
-            toast({
-                title: "Error",
-                description: message,
-                variant: "destructive",
-            });
-            setError(message);
+            // toast({
+            //     title: "Error",
+            //     description: message,
+            //     variant: "destructive",
+            // });
+            // setError(message);
             return [];
         } finally {
             setLoading(false);

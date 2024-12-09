@@ -1,7 +1,7 @@
 // src/pages/myfiles/page.tsx
 "use client";
 
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import useFiles from "@/hooks/useFiles";
 import {FileDto, SharedFileWithUserDto} from "@/types/api/file";
 import {FileList} from "@/components/ui/FileList";
@@ -27,7 +27,27 @@ const FilesPage: React.FC = () => {
     const [isStopSharingOpen, setStopSharingOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<FileDto | null>(null);
     const [sharedUsers, setSharedUsers] = useState<SharedFileWithUserDto[]>([]);
+    const [sharedFileIds, setSharedFileIds] = useState<Set<string>>(new Set());
     const [loadingSharedUsers, setLoadingSharedUsers] = useState(false);
+
+    useEffect(() => {
+        const fetchSharedFileIds = async () => {
+            const sharedIds = new Set<string>();
+            await Promise.all(files.map(async (file) => {
+                const shared = await getSharedUsers(file.id);
+                if (shared.length > 0) {
+                    sharedIds.add(file.id);
+                }
+            }));
+            setSharedFileIds(sharedIds);
+        };
+
+        if (files.length > 0) {
+            fetchSharedFileIds();
+        } else {
+            setSharedFileIds(new Set());
+        }
+    }, [files, getSharedUsers]);
 
     const openUpdateModal = (file: FileDto) => {
         setSelectedFile(file);
@@ -38,6 +58,7 @@ const FilesPage: React.FC = () => {
         setSelectedFile(file);
         setDeleteOpen(true);
     };
+
     const openShareModal = (file: FileDto) => {
         setSelectedFile(file);
         setShareOpen(true);
@@ -45,7 +66,10 @@ const FilesPage: React.FC = () => {
 
     const shareFile = async (fileId: string, userId: string, permission: 'READ' | 'WRITE') => {
         await handleShareWithUser({fileId, userId, permission});
+        // Po udostępnieniu, dodaj plik do sharedFileIds
+        setSharedFileIds(prev => new Set(prev).add(fileId));
     };
+
     const openStopSharingModal = async (file: FileDto) => {
         setSelectedFile(file);
         setStopSharingOpen(true);
@@ -73,6 +97,7 @@ const FilesPage: React.FC = () => {
                     onShare={openShareModal}
                     onStopShare={openStopSharingModal}
                     disableContextMenu={!userCanEditAndDelete}
+                    sharedFileIds={sharedFileIds}
                 />
             </div>
             {isUpdateOpen && selectedFile && (

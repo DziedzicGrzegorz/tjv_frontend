@@ -17,6 +17,7 @@ interface FileListProps {
     onStopShare?: (file: FileDto) => void;
     disableContextMenu?: boolean;
     className?: string;
+    sharedFileIds?: Set<string>; // Dodany prop
 }
 
 export const FileList: React.FC<FileListProps> = ({
@@ -29,6 +30,7 @@ export const FileList: React.FC<FileListProps> = ({
                                                       onStopShare,
                                                       disableContextMenu = false,
                                                       className,
+                                                      sharedFileIds = new Set(), // Domyślna wartość
                                                   }) => {
     const filesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -156,7 +158,7 @@ export const FileList: React.FC<FileListProps> = ({
                                             Share
                                         </ContextMenuItem>
                                     )}
-                                    {onStopShare && (
+                                    {onStopShare && sharedFileIds.has(file.id) && ( // Warunkowe renderowanie
                                         <ContextMenuItem
                                             className="text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-700 dark:text-indigo-500"
                                             onSelect={() => onStopShare(file)}
