@@ -1,5 +1,5 @@
-"use client"
-// components/DataTable/DataTable.tsx
+"use client";
+
 import {DataTablePagination} from '@/components/DataTable/DataTablePagination';
 import {Button} from '@/components/ui/button';
 import {
@@ -26,7 +26,7 @@ import {
 import {ArrowDown, ArrowUp} from 'lucide-react';
 import * as React from 'react';
 import DataTableContextProvider from "@/components/DataTable/dataTableContextProvider";
-
+import {Checkbox} from '@/components/ui/checkbox';
 
 interface DataTableProps<T> {
     data: T[];
@@ -110,6 +110,13 @@ export function DataTable<T>({
                         <TableHeader className="dark:bg-deepBlue">
                             {table.getHeaderGroups().map(headerGroup => (
                                 <TableRow key={headerGroup.id}>
+                                    <TableHead
+                                        className="py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
+                                        <Checkbox
+                                            checked={table.getIsAllRowsSelected()}
+                                            onCheckedChange={value => table.toggleAllRowsSelected(!!value)}
+                                        />
+                                    </TableHead>
                                     {headerGroup.headers.map(header => (
                                         <TableHead key={header.id}
                                                    className="py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">
@@ -147,6 +154,12 @@ export function DataTable<T>({
                                         key={row.id}
                                         data-state={row.getIsSelected() && 'selected'}
                                     >
+                                        <TableCell className="py-2">
+                                            <Checkbox
+                                                checked={row.getIsSelected()}
+                                                onCheckedChange={value => row.toggleSelected(!!value)}
+                                            />
+                                        </TableCell>
                                         {row.getVisibleCells().map(cell => (
                                             <TableCell key={cell.id}
                                                        className="px-6 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
@@ -158,7 +171,7 @@ export function DataTable<T>({
                             ) : (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={columns.length}
+                                        colSpan={columns.length + 1} // +1 for the checkbox column
                                         className="h-24 text-center text-gray-500 dark:text-gray-400"
                                     >
                                         No results.

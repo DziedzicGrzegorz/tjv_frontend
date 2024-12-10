@@ -1,41 +1,42 @@
-// src/hooks/useGroups.ts
-
+// src/hooks/useGroups.tsx
 "use client";
 
 import {useCallback, useEffect, useState} from "react";
 import {toast} from "@/hooks/use-toast";
 import {API_ENDPOINTS} from "@/api/endpoints";
 import {apiFetch} from "@/api/client";
-import {GroupDto} from "@/types/api/group";
-import {FileDto, SharedFileWithUserDto} from "@/types/api/file";
+import {CreateGroupRequest, GroupDto} from "@/types/api/group";
 import {UserDto} from "@/types/api/user";
+import {useUser} from "@/hooks/useUser";
 
 /**
- * Hook to manage fetching all groups for the current user.
+ * Hook to manage fetching and modifying groups for the current user.
  */
 const useGroups = () => {
     const [ownedGroups, setOwnedGroups] = useState<GroupDto[]>([]);
     const [joinedGroups, setJoinedGroups] = useState<GroupDto[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const {fetchUserByEmail} = useUser();
 
+    /**
+     * Fetches all groups associated with the current user.
+     */
     const fetchGroups = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-
-            const {id} = await apiFetch<UserDto>(API_ENDPOINTS.users.current);
+            const currentUser = await apiFetch<UserDto>(API_ENDPOINTS.users.current);
+            const {id} = currentUser;
 
             const data = await apiFetch<GroupDto[]>(API_ENDPOINTS.groups.byCurrentUser());
 
-            // Kategoryzacja grup
             const owned: GroupDto[] = [];
             const joined: GroupDto[] = [];
 
             data.forEach(group => {
-                const adminOrFounder
-                    = group.userRoles?.find(role => role.user.id === id && (role.role === 'ADMIN' || role.role === 'FOUNDER'));
-                if (adminOrFounder) {
+                const isOwnerOrAdmin = group.userRoles?.some(role => role.user.id === id && (role.role === 'ADMIN' || role.role === 'FOUNDER'));
+                if (isOwnerOrAdmin) {
                     owned.push(group);
                 } else {
                     joined.push(group);
@@ -61,9 +62,157 @@ const useGroups = () => {
         fetchGroups();
     }, [fetchGroups]);
 
-    const handleAddGroup = useCallback(() => {
-        alert("Add Group clicked!");
-        // TODO: Implementacja dodawania grupy
+    /**
+     * Adds a new group.
+     * @param createGroupRequest - The details of the group to create.
+     */
+    const addGroup = useCallback(async (createGroupRequest: CreateGroupRequest) => {
+        setLoading(true);
+        setError(null);
+        try {
+            await apiFetch<GroupDto>(API_ENDPOINTS.groups.create, {
+                method: 'POST',
+                body: JSON.stringify(createGroupRequest),
+            });
+
+            // Fetch groups again to include the new group
+            await fetchGroups();
+
+            toast({
+                title: "Success",
+                description: "Group added successfully.",
+                variant: "default",
+            });
+        } catch (error: unknown) {
+            const errorMessage = (error as Error).message || "Failed to add group.";
+            setError(errorMessage);
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchGroups]);
+
+    /**
+     * Adds a user to a group with a specified role.
+     * @param groupId - The ID of the group.
+     * @param userId - The ID of the user to add.
+     * @param role - The role to assign to the user ('MEMBER' | 'ADMIN').
+     */
+    const addUserToGroup = useCallback(async (groupId: string, userId: string, role: 'MEMBER' | 'ADMIN'): Promise<UserDto> => {
+        //fetch user by id to check if user exists and map email to id
+        const user = await fetchUserByEmail(userId);
+        console.log("User:", user);
+        if (!user) {
+            toast({
+                title: "Error",
+                description: "User not found.",
+                variant: "destructive",
+            })
+            throw new Error("User not found.");
+        }
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await apiFetch<UserDto>(`${API_ENDPOINTS.groups.byId(groupId)}/add-users`, {
+                method: 'POST',
+                body: JSON.stringify([user.id]), // Assuming the API expects an array of IDs even for single addition
+            });
+
+            await fetchGroups();
+
+            toast({
+                title: "Success",
+                description: "User added to group successfully.",
+                variant: "default",
+            });
+
+            return response;
+        } catch (error: unknown) {
+            const errorMessage = (error as Error).message || "Failed to add user to group.";
+            setError(errorMessage);
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    /**
+     * Removes a user from a group.
+     * @param groupId - The ID of the group.
+     * @param userId - The ID of the user to remove.
+     */
+    const removeUserFromGroup = useCallback(async (groupId: string, userId: string) => {
+        setLoading(true);
+        setError(null);
+        try {
+            await apiFetch(`${API_ENDPOINTS.groups.byId(groupId)}/remove-users`, {
+                method: 'DELETE',
+                body: JSON.stringify([userId]), // Assuming the API expects an array of IDs even for single removal
+            });
+
+            await fetchGroups();
+
+            toast({
+                title: "Success",
+                description: "User removed from group successfully.",
+                variant: "default",
+            });
+        } catch (error: unknown) {
+            const errorMessage = (error as Error).message || "Failed to remove user from group.";
+            setError(errorMessage);
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    /**
+     * Removes multiple users from a group.
+     * @param groupId - The ID of the group.
+     * @param userIds - An array of user IDs to remove.
+     */
+    const removeMultipleUsersFromGroup = useCallback(async (groupId: string, userIds: string[]) => {
+        setLoading(true);
+        setError(null);
+        try {
+            await apiFetch(`${API_ENDPOINTS.groups.byId(groupId)}/remove-users`, {
+                method: 'DELETE',
+                body: JSON.stringify(userIds),
+            });
+
+            // Update the group iby fetching groups again to include the new groupn state by removing the users
+            await fetchGroups();
+
+            toast({
+                title: "Success",
+                description: "Users removed from group successfully.",
+                variant: "default",
+            });
+        } catch (error: unknown) {
+            const errorMessage = (error as Error).message || "Failed to remove users from group.";
+            setError(errorMessage);
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
+            throw error;
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     return {
@@ -72,129 +221,11 @@ const useGroups = () => {
         loading,
         error,
         fetchGroups,
-        handleAddGroup,
+        addGroup,
+        addUserToGroup,
+        removeUserFromGroup,
+        removeMultipleUsersFromGroup,
     };
 };
 
-/**
- * Hook to manage fetching details of a specific group by ID.
- */
-const useGroupDetails = () => {
-    const [group, setGroup] = useState<GroupDto | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchGroup = useCallback(async (id: string) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await apiFetch<GroupDto>(API_ENDPOINTS.groups.byId(id));
-            setGroup(data);
-        } catch (error: unknown) {
-            const errorMessage = (error as Error).message || "Failed to load group.";
-            setError(errorMessage);
-            toast({
-                title: "Error",
-                description: errorMessage,
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        // This hook expects the caller to provide the ID and call fetchGroup accordingly
-    }, []);
-
-    return {
-        group,
-        loading,
-        error,
-        fetchGroup,
-    };
-};
-
-/**
- * Hook to manage fetching users in a specific group by Group ID.
- */
-const useGroupUsers = () => {
-    const [users, setUsers] = useState<SharedFileWithUserDto[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchGroupUsers = useCallback(async (groupId: string) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await apiFetch<SharedFileWithUserDto[]>(API_ENDPOINTS.groups.usersInGroup(groupId));
-            setUsers(data);
-        } catch (error: unknown) {
-            const errorMessage = (error as Error).message || "Failed to load group users.";
-            setError(errorMessage);
-            toast({
-                title: "Error",
-                description: errorMessage,
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        // This hook expects the caller to provide the Group ID and call fetchGroupUsers accordingly
-    }, []);
-
-    return {
-        users,
-        loading,
-        error,
-        fetchGroupUsers,
-    };
-};
-
-/**
- * Hook to manage fetching details of a specific group along with its shared files.
- */
-const useGroupWithFiles = () => {
-    const [group, setGroup] = useState<GroupDto | null>(null);
-    const [files, setFiles] = useState<FileDto[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchGroupWithFiles = useCallback(async (id: string) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await apiFetch<GroupDto>(API_ENDPOINTS.groups.byId(id));
-            setGroup(data);
-            const fetchedFiles = data.sharedFiles?.map(sf => sf.file) || [];
-            setFiles(fetchedFiles);
-        } catch (error: unknown) {
-            const errorMessage = (error as Error).message || "Failed to load group details.";
-            setError(errorMessage);
-            toast({
-                title: "Error",
-                description: errorMessage,
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        // This hook expects the caller to provide the ID and call fetchGroupWithFiles accordingly
-    }, []);
-
-    return {
-        group,
-        files,
-        loading,
-        error,
-        fetchGroupWithFiles,
-    };
-};
-
-export {useGroups, useGroupDetails, useGroupUsers, useGroupWithFiles};
+export {useGroups};

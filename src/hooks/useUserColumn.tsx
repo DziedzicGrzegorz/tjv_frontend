@@ -1,70 +1,47 @@
-// hooks/useUserColumns.tsx
-import {useMemo} from 'react';
-import {ColumnDef, createColumnHelper} from '@tanstack/react-table';
-import {Button} from '@/components/ui/button';
-import {Checkbox} from '@/components/ui/checkbox';
+// src/hooks/useUserColumn.tsx
+import {ColumnDef} from '@tanstack/react-table';
 import {UserDto} from '@/types/api/user';
-import {PencilIcon} from 'lucide-react';
+import {Button} from '@/components/ui/button';
 
-function useUserColumns(handleEdit: (user: UserDto) => void) {
-    const columnHelper = createColumnHelper<UserDto>();
-
-    const userColumns: ColumnDef<UserDto>[] = useMemo(
-        () => [
-            columnHelper.display({
-                id: 'select',
-                header: ({table}) => (
-                    <Checkbox
-                        checked={
-                            table.getIsAllPageRowsSelected() ||
-                            (table.getIsSomePageRowsSelected() && 'indeterminate')
-                        }
-                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                        aria-label="Select all"
-                    />
-                ),
-                cell: ({row}) => (
-                    <Checkbox
-                        checked={row.getIsSelected()}
-                        onCheckedChange={(value) => row.toggleSelected(!!value)}
-                        aria-label="Select row"
-                    />
-                ),
-                enableSorting: false,
-                enableHiding: false,
-            }),
-            columnHelper.accessor('username', {
-                header: 'Nazwa użytkownika',
-                cell: (info) => info.getValue(),
-            }),
-            columnHelper.accessor('email', {
-                header: 'Email',
-                cell: (info) => info.getValue(),
-            }),
-            columnHelper.accessor('roles', {
-                header: 'Role',
-                cell: (info) => info.getValue()?.join(', ') || '-',
-            }),
-            columnHelper.accessor('groupRoles', {
-                header: 'Role w Grupach',
-                cell: (info) =>
-                    info.getValue()?.map((gr) => `${gr.group.name} (${gr.role})`).join(', ') || '-',
-            }),
-            {
-                id: 'edit',
-                header: 'Edytuj',
-                cell: ({row}) => (
-                    <Button onClick={() => handleEdit(row.original)}>
-                        <PencilIcon className="w-4 h-4"/>
-                    </Button>
-                ),
-                enableSorting: false,
-            },
-        ],
-        [columnHelper, handleEdit]
-    ) as ColumnDef<UserDto>[];
-
-    return {userColumns};
+interface UseUserColumnsProps {
+    isAdminOrFounder: boolean;
+    handleRemove: (user: UserDto) => void;
 }
+
+const useUserColumns = ({isAdminOrFounder, handleRemove}: UseUserColumnsProps) => {
+    const columns: ColumnDef<UserDto>[] = [
+        {
+            accessorKey: 'username',
+            header: 'Username',
+            cell: info => info.getValue(),
+        },
+        {
+            accessorKey: 'email',
+            header: 'Email',
+            cell: info => info.getValue(),
+        },
+        // Add more columns if needed
+    ];
+
+    if (isAdminOrFounder) {
+        columns.push({
+            id: 'actions',
+            header: 'Actions',
+            cell: ({row}) => (
+                <div className="flex space-x-2">
+                    {/* Edit functionality can be added here if needed */}
+                    {/* <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)}>
+                        Edit
+                    </Button> */}
+                    <Button variant="destructive" size="sm" onClick={() => handleRemove(row.original)}>
+                        Delete
+                    </Button>
+                </div>
+            ),
+        });
+    }
+
+    return {userColumns: columns};
+};
 
 export default useUserColumns;

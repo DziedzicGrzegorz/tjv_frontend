@@ -4,18 +4,24 @@
 
 import React, {useEffect} from "react";
 import {useParams} from "next/navigation";
-import {useGroupWithFiles} from "@/hooks/useGroups";
 import {FileList} from "@/components/ui/FileList";
 
 import Link from "next/link";
 
 import useFiles from "@/hooks/useFiles";
+import useGroupWithFiles from "@/hooks/UseGroupWithFiles";
+import {useCurrentUser} from "@/hooks/useUser";
 
 const GroupDetailsPage: React.FC = () => {
+    const {currentUser} = useCurrentUser();
+    const {group, files, loading, error, fetchGroupWithFiles} = useGroupWithFiles();
+
+
+    const isAdminOrFounder = group?.userRoles?.some(role => role.user.id === currentUser?.id && (role.role === 'ADMIN' || role.role === 'FOUNDER')) || false;
+
     const {id} = useParams() as {
         id: string
     };
-    const {group, files, loading, error, fetchGroupWithFiles} = useGroupWithFiles();
     const {
         handleDownload,
     } = useFiles();
@@ -26,26 +32,6 @@ const GroupDetailsPage: React.FC = () => {
         }
     }, [id, fetchGroupWithFiles]);
 
-    // const handleDownload = async (file: FileDto) => {
-    //     try {
-    //         const blob = await apiDownloadFetch(API_ENDPOINTS.files.download(file.id), {method: 'GET'});
-    //         const url = window.URL.createObjectURL(blob);
-    //         const a = document.createElement('a');
-    //         a.href = url;
-    //         a.download = file.filename;
-    //         document.body.appendChild(a);
-    //         a.click();
-    //         a.remove();
-    //         window.URL.revokeObjectURL(url);
-    //     } catch (error: unknown) {
-    //         console.error(error);
-    //         toast({
-    //             title: "Download Error",
-    //             description: (error as Error).message || "Failed to download the file.",
-    //             variant: "destructive",
-    //         });
-    //     }
-    // };
 
     if (loading) {
         return (
@@ -82,13 +68,14 @@ const GroupDetailsPage: React.FC = () => {
                         </p>
                     )}
                 </div>
-                {/* Link do strony z użytkownikami grupy */}
-                <Link
-                    href={`${id}/users`}
-                    className="text-blue-600 hover:underline mx-auto"
-                >
-                    View Users
-                </Link>
+                {isAdminOrFounder && (
+                    <Link
+                        href={`${id}/users`}
+                        className="text-blue-600 hover:underline mx-auto"
+                    >
+                        View Users
+                    </Link>
+                )}
             </div>
 
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-4">Files in this group</h2>

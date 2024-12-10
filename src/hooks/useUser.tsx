@@ -55,6 +55,7 @@ const useCurrentUser = () => {
             const data = await apiFetch<UserDto>(API_ENDPOINTS.users.current); // Fetch current user
             console.log("Current user data:", data);
             setCurrentUser(data);
+            return data;
         } catch (err: unknown) {
             setError((err as Error).message || "An unknown error occurred");
             toast({
