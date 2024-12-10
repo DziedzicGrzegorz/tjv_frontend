@@ -160,7 +160,9 @@ const UsersPage = () => {
     }
 
     if (!users || users.length === 0) {
-        return <div>No users in this group.</div>;
+        return <div
+            className="bg-background h-full p-5 flex items-center justify-center text-gray-700 dark:text-gray-300">No
+            users in this group.</div>
     }
 
     return (
