@@ -15,10 +15,6 @@ import useGroupDetails from "@/hooks/useGroupDetails";
 import {useCurrentUser} from "@/hooks/useUser";
 import DeleteUsersDialog from "@/components/DeleteUsersDialog";
 
-/**
- * UsersPage Component
- * Displays and manages users within a specific group.
- */
 const UsersPage = () => {
     const [isAddOpen, setAddOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<UserDto | null>(null);
@@ -26,7 +22,6 @@ const UsersPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Get group ID from router
     const {id} = useParams() as {
         id: string
     };
@@ -57,28 +52,21 @@ const UsersPage = () => {
         }
     }, [group]);
 
-    // Determine if the current user is an admin or founder
     const isAdminOrFounder = group?.userRoles?.some(role => role.user.id === currentUser?.id && (role.role === 'ADMIN' || role.role === 'FOUNDER')) || false;
 
-    /**
-     * Handles the removal of a single user.
-     */
     const handleRemove = (user: UserDto) => {
         setUserToDelete(user);
     };
 
-    /**
-     * Handles adding a new user to the group.
-     */
     const handleAddUser = async (userId: string, role: "MEMBER" | "ADMIN") => {
         try {
             const newUser = await addUserToGroup(id, userId, role);
-            setUsers(prevUsers => prevUsers ? [...prevUsers, newUser] : [newUser]);
             toast({
                 title: "Success",
                 description: "User has been added to the group.",
                 variant: "default",
             });
+            await fetchGroupDetails(id);
         } catch (error) {
             console.error("Failed to add user:", error);
             toast({
@@ -89,9 +77,6 @@ const UsersPage = () => {
         }
     };
 
-    /**
-     * Confirms the removal of a user.
-     */
     const confirmRemove = () => {
         if (userToDelete) {
             removeUserFromGroup(id, userToDelete.id)
@@ -118,10 +103,6 @@ const UsersPage = () => {
     };
 
 
-    /**
-     * Callback to handle successful bulk deletion.
-     * Removes deleted users from the state.
-     */
     const handleBulkDeleteSuccess = (deletedUserIds: string[]) => {
         setUsers(prevUsers => prevUsers?.filter(user => !deletedUserIds.includes(user.id)) || null);
         toast({
@@ -131,15 +112,11 @@ const UsersPage = () => {
         });
     };
 
-    /**
-     * Get user columns for the DataTable.
-     */
     const {userColumns} = useUserColumns({
         isAdminOrFounder,
         handleRemove,
     });
 
-    // Handle loading state with Spinner
     if (groupDetailsLoading || userLoading) {
         return (
             <div className="w-full h-full p-5 dark:bg-background flex items-center justify-center">
@@ -166,7 +143,7 @@ const UsersPage = () => {
     }
 
     return (
-        <div className="bg-background h-full p-5">
+        <div className="bg-background max-xh-full p-5">
             <div className="flex justify-between items-center mb-5">
                 <h1 className="text-2xl font-bold">Group Users</h1>
             </div>

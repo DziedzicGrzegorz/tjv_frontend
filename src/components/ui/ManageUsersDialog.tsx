@@ -26,7 +26,6 @@ import {SubmitHandler, useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import {toast} from "@/hooks/use-toast";
-import {useUser} from "@/hooks/useUser";
 
 interface ManageUsersFormInputs {
     email: string;
@@ -56,7 +55,6 @@ const ManageUsersDialog: React.FC<ManageUsersDialogProps> = ({
                                                                  setOpen,
                                                                  onAddUser,
                                                              }) => {
-    const {fetchUserByEmail} = useUser();
 
     const form = useForm<ManageUsersFormInputs>({
         resolver: yupResolver(schema),
@@ -75,12 +73,7 @@ const ManageUsersDialog: React.FC<ManageUsersDialogProps> = ({
 
     const onSubmit: SubmitHandler<ManageUsersFormInputs> = async (data) => {
         try {
-
-
-            // Wywołaj funkcję onAddUser z odpowiednimi parametrami
             onAddUser(data.email, data.role);
-
-            // Reset formularza i zamknij dialog
             reset();
             setOpen(false);
 

@@ -34,8 +34,6 @@ export interface FileSharingWithGroupRequest {
     fileId: string; // uuid
     groupId: string; // uuid
     permission: 'READ' | 'WRITE';
-    group: ShortGroupDto;
-    sharedAt: string; // date-time
 }
 
 // SharedFileWithGroupDto represents a file that has been shared with a group.
@@ -44,4 +42,8 @@ export interface SharedFileWithGroupDto {
     file: FileDto;
     permission: string;
     sharedAt: string; // date-time
+    group: ShortGroupDto;
 }
+
+// Already defined above
+export type FileSharingRequest = FileSharingWithUserRequest | FileSharingWithGroupRequest;

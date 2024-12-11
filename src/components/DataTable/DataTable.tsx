@@ -147,7 +147,7 @@ export function DataTable<T>({
                                 </TableRow>
                             ))}
                         </TableHeader>
-                        <TableBody className="bg-white dark:bg-blue-900">
+                        <TableBody className="bg-white dark:bg-highlight">
                             {table.getRowModel().rows?.length ? (
                                 table.getRowModel().rows.map(row => (
                                     <TableRow

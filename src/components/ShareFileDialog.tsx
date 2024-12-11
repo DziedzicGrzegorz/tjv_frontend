@@ -1,8 +1,6 @@
-// src/components/ui/ShareFileDialog.tsx
 "use client";
 
-import React from "react";
-import {FileDto} from "@/types/api/file";
+import React, {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button";
 import {
     Dialog,
@@ -12,7 +10,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -29,29 +26,51 @@ import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import {toast} from "@/hooks/use-toast";
 import {useUser} from "@/hooks/useUser";
+import {useGroups} from "@/hooks/useGroups";
+import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Input} from "@/components/ui/input";
+import {FileDto, FileSharingRequest} from "@/types/api/file";
 
 interface ShareFileFormInputs {
-    email: string;
+    email?: string | null;
+    groupId?: string | null;
     permission: "READ" | "WRITE";
+    shareWith: "user" | "group";
 }
 
 interface ShareFileDialogProps {
     isOpen: boolean;
     setOpen: (open: boolean) => void;
     file: FileDto;
-    onShare: (fileId: string, userId: string, permission: "READ" | "WRITE") => void;
+    onShare: (shareData: FileSharingRequest) => void;
 }
 
-// Walidacja dla obu pól: email i permission
-const schema = yup.object().shape({
+const schema = yup.object({
+    shareWith: yup
+        .string()
+        .oneOf(["user", "group"], "Sharing method must be either 'user' or 'group'.")
+        .required("Sharing method is required."),
     email: yup
         .string()
         .email("Invalid email address")
-        .required("Email is required"),
+        .nullable()
+        .when("shareWith", {
+            is: "user",
+            then: (schema) => schema.required("Email is required when sharing with a user."),
+            otherwise: (schema) => schema.notRequired(),
+        }),
+    groupId: yup
+        .string()
+        .nullable()
+        .when("shareWith", {
+            is: "group",
+            then: (schema) => schema.required("Group is required when sharing with a group."),
+            otherwise: (schema) => schema.notRequired(),
+        }),
     permission: yup
         .mixed<"READ" | "WRITE">()
-        .oneOf(["READ", "WRITE"], "Permission must be READ or WRITE")
-        .required("Permission is required"),
+        .oneOf(["READ", "WRITE"], "Permission must be READ or WRITE.")
+        .required("Permission is required."),
 });
 
 const ShareFileDialog: React.FC<ShareFileDialogProps> = ({
@@ -61,88 +80,188 @@ const ShareFileDialog: React.FC<ShareFileDialogProps> = ({
                                                              onShare,
                                                          }) => {
     const {fetchUserByEmail} = useUser();
+    const {ownedGroups, fetchGroups} = useGroups();
+    const [shareWith, setShareWith] = useState<"user" | "group">("user");
 
-    // Inicjalizacja formularza z walidacją
-    const emailForm = useForm<ShareFileFormInputs>({
+    // Initialize form with validation
+    const form = useForm<ShareFileFormInputs>({
         resolver: yupResolver(schema),
         defaultValues: {
-            email: "",
+            email: null,
+            groupId: null,
             permission: "READ",
+            shareWith: "user",
         },
     });
+
     const {
         control,
         handleSubmit,
         formState: {errors, isSubmitting},
         reset,
-    } = emailForm
+        watch,
+    } = form;
 
     const onSubmit: SubmitHandler<ShareFileFormInputs> = async (data) => {
         try {
-            // Pobierz użytkownika na podstawie e-maila
-            const fetchedUser = await fetchUserByEmail(data.email);
+            let shareData: FileSharingRequest;
+            const selectedShareWith = watch("shareWith");
+            console.log({selectedShareWith});
 
-            if (!fetchedUser) {
-                throw new Error("User not found.");
+
+            if (selectedShareWith === "user") {
+                console.log("user");
+                if (!data.email) {
+                    throw new Error("Email is required.");
+                }
+                const fetchedUser = await fetchUserByEmail(data.email);
+                if (!fetchedUser) {
+                    throw new Error("User not found.");
+                }
+                shareData = {
+                    fileId: file.id,
+                    userId: fetchedUser.id,
+                    permission: data.permission,
+                };
+            } else if (selectedShareWith === "group") {
+                console.log("group");
+                if (!data.groupId) {
+                    throw new Error("Group is required.");
+                }
+                shareData = {
+                    fileId: file.id,
+                    groupId: data.groupId,
+                    permission: data.permission,
+                };
+            } else {
+                throw new Error("Invalid sharing method.");
             }
-            console.log(fetchedUser);
 
-            // Wywołaj funkcję onShare z odpowiednimi parametrami
-            onShare(file.id, fetchedUser.id, data.permission);
 
-            // Reset formularza i zamknij dialog
+            onShare(shareData);
             reset();
             setOpen(false);
 
             toast({
                 title: "Success",
-                description: `File has been successfully shared with ${data.email}.`,
+                description: `File has been successfully shared.`,
                 variant: "default",
             });
         } catch (error: any) {
-            console.error("Failed to share file:", error);
             toast({
                 title: "Error",
-                description:
-                    error?.message || "Failed to share the file. Please try again.",
+                description: error.message || "Failed to share the file. Please try again.",
                 variant: "destructive",
             });
         }
     };
 
+    useEffect(() => {
+        if (shareWith === "group") {
+            fetchGroups();
+        }
+    }, [shareWith, fetchGroups]);
+
     return (
         <Dialog open={isOpen} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Share File</DialogTitle>
                     <DialogDescription>
-                        Enter the email of the user you want to share <strong>{file.filename}</strong> with.
+                        Enter the email of the user or select a group you want to
+                        share <strong>{file.filename}</strong> with.
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...emailForm}>
+                <Form {...form}>
                     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
-                        <FormField
-                            control={control}
-                            name="email"
-                            render={({field}) => (
-                                <FormItem>
-                                    <Label htmlFor="email">Email</Label>
-                                    <FormControl>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="Enter email address"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    {errors.email && (
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {errors.email.message}
-                                        </p>
-                                    )}
-                                </FormItem>
-                            )}
-                        />
+                        <Tabs
+                            value={watch("shareWith")}
+                            onValueChange={(value) => {
+                                setShareWith(value as "user" | "group");
+                                form.setValue("shareWith", value as "user" | "group");
+                            }}
+                        >
+                            <TabsList className="grid grid-cols-2">
+                                <TabsTrigger value="user">User</TabsTrigger>
+                                <TabsTrigger value="group">Group</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+
+
+                        {shareWith === "user" && (
+                            <FormField
+                                control={control}
+                                name="email"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <Label htmlFor="email">Email</Label>
+                                        <FormControl>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                placeholder="Enter email address"
+                                                value={field.value ?? ""}
+                                                onChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                name={field.name}
+                                                ref={field.ref}
+                                            />
+                                        </FormControl>
+                                        {errors.email &&
+                                            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+
+                        {shareWith === "group" && (
+                            <FormField
+                                control={control}
+                                name="groupId"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <Label htmlFor="group">Select Group</Label>
+                                        <FormControl>
+                                            <Select
+                                                value={field.value ?? "no-groups"}
+                                                onValueChange={(value) => {
+                                                    if (value !== "no-groups") {
+                                                        field.onChange(value);
+                                                    }
+                                                }}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Select a group"/>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        <SelectLabel>Groups</SelectLabel>
+                                                        {ownedGroups.length > 0 ? (
+                                                            ownedGroups.map((group) => (
+                                                                <SelectItem key={group.id} value={group.id}>
+                                                                    {group.name}
+                                                                </SelectItem>
+                                                            ))
+                                                        ) : (
+                                                            <SelectItem value="no-groups" disabled>
+                                                                No groups available
+                                                            </SelectItem>
+                                                        )}
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        {errors.groupId && (
+                                            <p className="text-red-500 text-sm mt-1">
+                                                {errors.groupId.message}
+                                            </p>
+                                        )}
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+
+
                         <FormField
                             control={control}
                             name="permission"
@@ -161,19 +280,17 @@ const ShareFileDialog: React.FC<ShareFileDialogProps> = ({
                                                 <SelectGroup>
                                                     <SelectLabel>Permissions</SelectLabel>
                                                     <SelectItem value="READ">Read</SelectItem>
-                                                    {/*<SelectItem value="WRITE">Write</SelectItem>*/}
+                                                    <SelectItem value="WRITE">Write</SelectItem>
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
                                     </FormControl>
-                                    {errors.permission && (
-                                        <p className="text-red-600 text-sm mt-1">
-                                            {errors.permission.message}
-                                        </p>
-                                    )}
+                                    {errors.permission &&
+                                        <p className="text-red-600 text-sm mt-1">{errors.permission.message}</p>}
                                 </FormItem>
                             )}
                         />
+
                         <DialogFooter>
                             <Button
                                 variant="outline"
@@ -185,11 +302,7 @@ const ShareFileDialog: React.FC<ShareFileDialogProps> = ({
                             >
                                 Cancel
                             </Button>
-                            <Button
-                                variant="default"
-                                type="submit"
-                                disabled={isSubmitting}
-                            >
+                            <Button variant="default" type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? "Sharing..." : "Share"}
                             </Button>
                         </DialogFooter>

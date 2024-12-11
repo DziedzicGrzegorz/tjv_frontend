@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import {useEffect} from "react"
 
 import {Button} from "@/components/ui/button"
 import {
@@ -24,19 +23,14 @@ interface UpdateFileProps {
 }
 
 const handleFileUpload = () => {
-    // console.log("Uploaded Files:", file);
+    console.log("Uploaded Files:");
 
-    // Optionally, reset global error if any
 };
 const handleUploadError = (error: string) => {
     console.error("Upload Error:", error);
 };
 export default function UpdateFileDrawer({isOpen, setOpen, file, refetchFiles}: UpdateFileProps) {
-    useEffect(() => {
-        console.log("File to update:", file);
-        console.log("refetch")
-        refetchFiles();
-    }, [file, refetchFiles]);
+
 
     return (
         <Drawer open={isOpen} onOpenChange={setOpen}>

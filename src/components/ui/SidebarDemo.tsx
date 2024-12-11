@@ -2,7 +2,7 @@
 
 import React, {useState} from "react";
 import {Sidebar, SidebarBody, SidebarLink} from "../ui/sidebar";
-import {IconArrowLeft, IconBrandTabler, IconCrop, IconFiles, IconSettings, IconUserBolt} from "@tabler/icons-react";
+import {IconArrowLeft, IconBrandTabler, IconCrop, IconFiles, IconSettings} from "@tabler/icons-react";
 import Link from "next/link";
 import {motion} from "framer-motion";
 import Image from "next/image";
@@ -49,13 +49,6 @@ export function SidebarDemo({children}: {
                 <IconCrop className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0"/>
             ),
         },
-        {
-            label: "Users",
-            href: "/dashboard/users",
-            icon: (
-                <IconUserBolt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0"/>
-            ),
-        },
     ];
 
     const [open, setOpen] = useState(false);
@@ -95,7 +88,7 @@ export function SidebarDemo({children}: {
                     </div>
                 </SidebarBody>
             </Sidebar>
-            <main className="flex-1 bg-gray-50 overflow-y-auto">{children}</main>
+            <main className="flex-1 bg-background overflow-y-auto">{children}</main>
         </div>
     );
 }

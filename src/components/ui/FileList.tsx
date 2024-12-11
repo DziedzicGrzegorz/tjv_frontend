@@ -17,7 +17,8 @@ interface FileListProps {
     onStopShare?: (file: FileDto) => void;
     disableContextMenu?: boolean;
     className?: string;
-    sharedFileIds?: Set<string>; // Dodany prop
+    sharedFileIds?: Set<string>; // Files shared with users
+    sharedFileWithGroupIds?: Set<string>; // Files shared with groups
 }
 
 export const FileList: React.FC<FileListProps> = ({
@@ -31,6 +32,7 @@ export const FileList: React.FC<FileListProps> = ({
                                                       disableContextMenu = false,
                                                       className,
                                                       sharedFileIds = new Set(), // Domyślna wartość
+                                                      sharedFileWithGroupIds = new Set(), // Domyślna wartość
                                                   }) => {
     const filesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -60,6 +62,7 @@ export const FileList: React.FC<FileListProps> = ({
             >
                 {files.length > 0 ? (
                     files.map((file) => {
+                        const isShared = sharedFileIds.has(file.id) || sharedFileWithGroupIds.has(file.id);
                         const fileContent = (
                             <motion.div
                                 key={file.id}
@@ -158,7 +161,7 @@ export const FileList: React.FC<FileListProps> = ({
                                             Share
                                         </ContextMenuItem>
                                     )}
-                                    {onStopShare && sharedFileIds.has(file.id) && ( // Warunkowe renderowanie
+                                    {onStopShare && isShared && (
                                         <ContextMenuItem
                                             className="text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-700 dark:text-indigo-500"
                                             onSelect={() => onStopShare(file)}

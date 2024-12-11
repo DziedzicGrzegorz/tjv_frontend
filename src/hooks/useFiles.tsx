@@ -2,7 +2,13 @@
 import {useCallback, useEffect, useState} from "react";
 import {toast} from "@/hooks/use-toast";
 import {API_ENDPOINTS} from "@/api/endpoints";
-import {FileDto, FileSharingWithUserRequest, SharedFileWithUserDto} from "@/types/api/file";
+import {
+    FileDto,
+    FileSharingWithGroupRequest,
+    FileSharingWithUserRequest,
+    SharedFileWithGroupDto,
+    SharedFileWithUserDto
+} from "@/types/api/file";
 import {apiFetch} from "@/api/client";
 import {apiDownloadFetch} from "@/api/blobFetch";
 
@@ -151,6 +157,59 @@ const useFiles = () => {
         },
         []
     );
+    const handleShareWithGroup = useCallback(async (fileSharingWithUserRequest: FileSharingWithGroupRequest) => {
+        setLoading(true);
+        try {
+            await apiFetch(API_ENDPOINTS.sharedFiles.groupById, {
+                method: 'POST',
+                body: JSON.stringify(fileSharingWithUserRequest)
+            });
+            toast({
+                title: "Success",
+                description: "File shared successfully.",
+                variant: "default",
+            });
+            await fetchUserFiles();
+        } catch (error: unknown) {
+            const message = (error as Error).message || "Failed to share the file.";
+            toast({
+                title: "Share Error",
+                description: message,
+                variant: "destructive",
+            });
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchUserFiles]);
+
+    const handleStopSharingWithGroup = useCallback(
+        async (groupId: string, fileId: string) => {
+            setLoading(true);
+            try {
+                await apiFetch(API_ENDPOINTS.sharedFiles.unshareGroup(groupId, fileId), {
+                    method: "DELETE",
+                });
+                toast({
+                    title: "Success",
+                    description: "File unshared successfully.",
+                    variant: "default",
+                });
+                await fetchUserFiles();
+            } catch (error: unknown) {
+                const message = (error as Error).message || "Failed to unshare file.";
+                toast({
+                    title: "Unshare Error",
+                    description: message,
+                    variant: "destructive",
+                });
+                setError(message);
+            } finally {
+                setLoading(false);
+            }
+        },
+        []
+    );
 
     const getSharedUsers = useCallback(async (fileId: string): Promise<SharedFileWithUserDto[]> => {
         setLoading(true);
@@ -159,12 +218,19 @@ const useFiles = () => {
             return data;
         } catch (error: unknown) {
             const message = (error as Error).message || "Failed to fetch shared users.";
-            // toast({
-            //     title: "Error",
-            //     description: message,
-            //     variant: "destructive",
-            // });
-            // setError(message);
+
+            return [];
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+    const getSharedFileWithGroups = useCallback(async (fileId: string): Promise<SharedFileWithGroupDto[]> => {
+        setLoading(true);
+        try {
+            return await apiFetch<SharedFileWithGroupDto[]>(API_ENDPOINTS.sharedFiles.getSharedFileWithGroups(fileId), {method: 'GET'});
+        } catch (error: unknown) {
+            const message = (error as Error).message || "Failed to fetch shared groups.";
+
             return [];
         } finally {
             setLoading(false);
@@ -181,7 +247,10 @@ const useFiles = () => {
         handleUpdate,
         handleShareWithUser,
         handleStopSharingWithUser,
-        getSharedUsers
+        getSharedUsers,
+        handleShareWithGroup,
+        handleStopSharingWithGroup,
+        getSharedFileWithGroups
     };
 };
 

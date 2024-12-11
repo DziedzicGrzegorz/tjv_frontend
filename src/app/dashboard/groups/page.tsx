@@ -21,7 +21,6 @@ const GroupsPage = () => {
     const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
     const {currentUser, loading: userLoading, error: userError} = useCurrentUser();
 
-    // Schema walidacji formularza
     const schema = yup.object().shape({
         name: yup.string().required("Group name is required").max(100, "Maximum 100 characters"),
         description: yup.string().max(500, "Maximum 500 characters").optional(),
@@ -66,7 +65,6 @@ const GroupsPage = () => {
     return (
         <div className="relative w-full min-h-full p-5 bg-background">
             <div className="flex items-center justify-start mb-5">
-                {/* Trigger do otwierania dialogu */}
                 <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
                         <Button

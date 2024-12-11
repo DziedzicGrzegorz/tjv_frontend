@@ -1,4 +1,3 @@
-// src/hooks/useUser.tsx
 "use client";
 
 import {useCallback, useEffect, useState} from "react";
@@ -28,7 +27,7 @@ const useUser = () => {
             });
             setError(message);
             setUser(null);
-            throw new Error(message); // Rzucenie błędu, aby można było go obsłużyć w komponencie
+            throw new Error(message);
         } finally {
             setLoading(false);
         }

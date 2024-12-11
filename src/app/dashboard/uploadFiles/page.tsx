@@ -29,13 +29,12 @@ export default function FilePage() {
     };
     return (
         <div
-            //center this
             className="flex items-center justify-center h-screen bg-gray-100 dark:bg-background"
         >
             <div
                 className="w-full max-w-4xl mx-auto min-h-96 h-4/5 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg">
                 <FileUpload
-                    onChange={handleFileUpload} // Expects FileDto[]
+                    onChange={handleFileUpload}
                     onError={handleUploadError}
                 />
                 {globalError && (

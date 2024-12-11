@@ -33,12 +33,10 @@ const FilesPage: React.FC = () => {
         fetchUserFiles();
     }, []);
 
-    // Wyciągamy z sharedFiles tablicę FileDto:
     const files = sharedFiles.map(shared => shared.file);
 
     return (
         <div className="w-full h-full p-5 dark:bg-background">
-            {/* Teraz przekazujemy FileDto[] do FileList */}
             <FileList files={files} loading={loading} onDownload={handleDownload} disableContextMenu={true}/>
         </div>
     );

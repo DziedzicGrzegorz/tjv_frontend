@@ -1,8 +1,7 @@
-// src/components/ui/StopSharingDialog.tsx
 "use client";
 
 import React from "react";
-import {FileDto, SharedFileWithUserDto} from "@/types/api/file";
+import {FileDto, SharedFileWithGroupDto, SharedFileWithUserDto} from "@/types/api/file";
 import {Button} from "@/components/ui/button";
 import {
     Dialog,
@@ -19,9 +18,13 @@ import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import useFiles from "@/hooks/useFiles";
 import {ComboboxUser} from "@/components/ComboboxUser";
+import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {ComboboxGroup} from "@/components/ComboboxGroup";
 
 interface StopSharingFormInputs {
-    userId: string;
+    userId?: string;
+    groupId?: string;
+    shareWith: "user" | "group";
 }
 
 interface StopSharingDialogProps {
@@ -29,11 +32,25 @@ interface StopSharingDialogProps {
     setOpen: (open: boolean) => void;
     file: FileDto;
     sharedUsers: SharedFileWithUserDto[];
+    sharedGroups: SharedFileWithGroupDto[];
     refreshFiles: () => void;
 }
 
 const schema = yup.object().shape({
-    userId: yup.string().required("User is required"),
+    shareWith: yup
+        .string()
+        .oneOf(["user", "group"], "You must select whether to stop sharing with a user or group.")
+        .required("Selection is required."),
+    userId: yup.string().when("shareWith", {
+        is: "user",
+        then: (schema) => schema.required("User is required."),
+        otherwise: (schema) => schema.notRequired(),
+    }),
+    groupId: yup.string().when("shareWith", {
+        is: "group",
+        then: (schema) => schema.required("Group is required."),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 });
 
 const StopSharingDialog: React.FC<StopSharingDialogProps> = ({
@@ -41,14 +58,18 @@ const StopSharingDialog: React.FC<StopSharingDialogProps> = ({
                                                                  setOpen,
                                                                  file,
                                                                  sharedUsers,
+                                                                 sharedGroups,
                                                                  refreshFiles,
                                                              }) => {
     const stopSharingForm = useForm<StopSharingFormInputs>({
         resolver: yupResolver(schema),
         defaultValues: {
+            shareWith: "user",
             userId: "",
+            groupId: "",
         },
     });
+
     const {
         handleSubmit,
         control,
@@ -57,10 +78,16 @@ const StopSharingDialog: React.FC<StopSharingDialogProps> = ({
         formState: {errors, isSubmitting},
         reset,
     } = stopSharingForm;
-    const {handleStopSharingWithUser} = useFiles();
+
+    const {handleStopSharingWithUser, handleStopSharingWithGroup} = useFiles();
 
     const onSubmit: SubmitHandler<StopSharingFormInputs> = async (data) => {
-        await handleStopSharingWithUser(data.userId, file.id);
+        if (data.shareWith === "user" && data.userId) {
+            await handleStopSharingWithUser(data.userId, file.id);
+        } else if (data.shareWith === "group" && data.groupId) {
+            await handleStopSharingWithGroup(data.groupId, file.id);
+        }
+
         refreshFiles();
         reset();
         setOpen(false);
@@ -71,38 +98,81 @@ const StopSharingDialog: React.FC<StopSharingDialogProps> = ({
         label: sharedUser.sharedWith.username,
     }));
 
+    const groups = sharedGroups.map((sharedGroup) => ({
+        value: sharedGroup.group.id,
+        label: sharedGroup.group.name, // Assuming you have a `name` property for the group
+    }));
+
     return (
         <Dialog open={isOpen} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Stop Sharing File</DialogTitle>
                     <DialogDescription>
-                        Select the user you want to stop sharing <strong>{file.filename}</strong> with.
+                        Select the user or group you want to stop sharing{" "}
+                        <strong>{file.filename}</strong> with.
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...stopSharingForm}>
                     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
-                        <FormField
-                            control={control}
-                            name="userId"
-                            render={() => (
-                                <FormItem>
-                                    <Label htmlFor="user">User</Label>
-                                    <FormControl>
-                                        <ComboboxUser
-                                            value={watch("userId")}
-                                            onChange={(value) => setValue("userId", value)}
-                                            users={users}
-                                        />
-                                    </FormControl>
-                                    {errors.userId && (
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {errors.userId.message}
-                                        </p>
-                                    )}
-                                </FormItem>
-                            )}
-                        />
+                        <Tabs
+                            value={watch("shareWith")}
+                            onValueChange={(value) => setValue("shareWith", value as "user" | "group")}
+                        >
+                            <TabsList className="grid grid-cols-2">
+                                <TabsTrigger value="user">User</TabsTrigger>
+                                <TabsTrigger value="group">Group</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+
+                        {watch("shareWith") === "user" && (
+                            <FormField
+                                control={control}
+                                name="userId"
+                                render={() => (
+                                    <FormItem>
+                                        <Label htmlFor="user" className="mr-8">User</Label>
+                                        <FormControl>
+                                            <ComboboxUser
+                                                value={watch("userId") ?? ""}
+                                                onChange={(value) => setValue("userId", value)}
+                                                users={users}
+                                            />
+                                        </FormControl>
+                                        {errors.userId && (
+                                            <p className="text-red-500 text-sm mt-1">
+                                                {errors.userId.message}
+                                            </p>
+                                        )}
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+
+                        {watch("shareWith") === "group" && (
+                            <FormField
+                                control={control}
+                                name="groupId"
+                                render={() => (
+                                    <FormItem>
+                                        <Label htmlFor="group" className="mr-8">Group</Label>
+                                        <FormControl>
+                                            <ComboboxGroup
+                                                value={watch("groupId") ?? ""}
+                                                onChange={(value) => setValue("groupId", value)}
+                                                users={groups}
+                                            />
+                                        </FormControl>
+                                        {errors.groupId && (
+                                            <p className="text-red-500 text-sm mt-1">
+                                                {errors.groupId.message}
+                                            </p>
+                                        )}
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+
                         <DialogFooter>
                             <Button
                                 variant="outline"

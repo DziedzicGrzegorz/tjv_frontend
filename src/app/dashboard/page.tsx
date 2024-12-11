@@ -75,24 +75,6 @@ const Dashboard = () => {
                     </div>
                 )}
             </div>
-
-            <button
-                onClick={() => {
-                    fetchCurrentUser();
-                }}
-                className="mt-6 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-all"
-            >
-                Refresh User Data
-            </button>
-
-            <button
-                onClick={() => {
-                    // Implementacja funkcji logout
-                }}
-                className="mt-6 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-all"
-            >
-                Logout
-            </button>
         </div>
     );
 

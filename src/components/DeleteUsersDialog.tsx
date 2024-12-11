@@ -1,7 +1,6 @@
-// src/components/ui/DeleteUsersDialog.tsx
 "use client";
 
-import React, {useContext} from "react";
+import React, {useContext, useState} from "react";
 import {Button} from "@/components/ui/button";
 import {
     Dialog,
@@ -29,6 +28,8 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({
     const {table} = useContext(DataTableContext);
     const {removeMultipleUsersFromGroup} = useGroups();
 
+    const [isOpen, setIsOpen] = useState(false);
+
     const numberOfSelectedRows = table?.getSelectedRowModel().rows.length || 0;
 
     const handleDelete = async () => {
@@ -51,6 +52,7 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({
                 if (table) {
                     table.resetRowSelection();
                 }
+                setIsOpen(false);
             } catch (error) {
                 console.error("Failed to delete users:", error);
                 toast({
@@ -63,10 +65,9 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({
     };
 
     return (
-        <Dialog>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger
                 asChild
-                // Disable button if no rows are selected
                 className={numberOfSelectedRows === 0 ? "pointer-events-none opacity-50" : ""}
             >
                 <Button variant="destructive">Delete Selected</Button>
@@ -81,7 +82,7 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => table?.resetRowSelection()}>
+                    <Button variant="outline" onClick={() => setIsOpen(false)}>
                         Cancel
                     </Button>
                     <Button variant="destructive" onClick={handleDelete}>

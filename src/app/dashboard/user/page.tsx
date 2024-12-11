@@ -25,7 +25,6 @@ const Page = () => {
     const [isEmailDialogOpen, setEmailDialogOpen] = useState(false);
     const [isPasswordDialogOpen, setPasswordDialogOpen] = useState(false);
 
-    // Fetch current user on component mount
     useEffect(() => {
         fetchCurrentUser();
     }, []);
@@ -46,7 +45,6 @@ const Page = () => {
         }
     };
 
-    // Email Validation Schema
     const emailSchema = yup.object().shape({
         email: yup
             .string()
@@ -153,12 +151,11 @@ const Page = () => {
                     </Card>
 
                     <div className="mt-6 space-x-4">
-                        {/* Edit Email Dialog */}
                         <Dialog
                             open={isEmailDialogOpen}
                             onOpenChange={(open) => {
                                 setEmailDialogOpen(open);
-                                if (!open) emailForm.reset(); // Reset on close
+                                if (!open) emailForm.reset();
                             }}
                         >
                             <DialogTrigger asChild>
@@ -177,7 +174,9 @@ const Page = () => {
                                                 <FormItem>
                                                     <Label htmlFor="email">Email</Label>
                                                     <FormControl>
-                                                        <Input id="email" {...field} value={field.value || ""}/>
+                                                        <Input id="email"
+                                                               className="text-black dark:text-white" {...field}
+                                                               value={field.value || ""}/>
                                                     </FormControl>
                                                     {emailForm.formState.errors.email && (
                                                         <p className="text-red-500 text-sm mt-1">
@@ -195,12 +194,11 @@ const Page = () => {
                             </DialogContent>
                         </Dialog>
 
-                        {/* Change Password Dialog */}
                         <Dialog
                             open={isPasswordDialogOpen}
                             onOpenChange={(open) => {
                                 setPasswordDialogOpen(open);
-                                if (!open) passwordForm.reset(); // Reset on close
+                                if (!open) passwordForm.reset();
                             }}
                         >
                             <DialogTrigger asChild>
@@ -220,7 +218,8 @@ const Page = () => {
                                                 <FormItem>
                                                     <Label htmlFor="password">New Password</Label>
                                                     <FormControl>
-                                                        <Input id="password" type="password" {...field}
+                                                        <Input className="text-black dark:text-white"
+                                                               id="password" type="password" {...field}
                                                                value={field.value || ""}/>
                                                     </FormControl>
                                                     {passwordForm.formState.errors.password && (
@@ -238,7 +237,8 @@ const Page = () => {
                                                 <FormItem>
                                                     <Label htmlFor="confirmPassword">Confirm Password</Label>
                                                     <FormControl>
-                                                        <Input id="confirmPassword" type="password" {...field}
+                                                        <Input className="text-black dark:text-white"
+                                                               id="confirmPassword" type="password" {...field}
                                                                value={field.value || ""}/>
                                                     </FormControl>
                                                     {passwordForm.formState.errors.confirmPassword && (
