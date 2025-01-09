@@ -1,6 +1,5 @@
 "use client"
 import React, {useEffect, useState} from "react";
-import {toast} from "@/hooks/use-toast";
 import {API_ENDPOINTS} from "@/api/endpoints";
 import {SharedFileWithUserDto} from "@/types/api/file";
 import {apiFetch} from "@/api/client";
@@ -20,11 +19,11 @@ const FilesPage: React.FC = () => {
                 console.log(data);
                 setSharedFiles(data);
             } catch (error: unknown) {
-                toast({
-                    title: "Error",
-                    description: (error as Error).message || "Failed to load files.",
-                    variant: "destructive",
-                });
+                // toast({
+                //     title: "Error",
+                //     description: (error as Error).message || "Failed to load files.",
+                //     variant: "destructive",
+                // });
             } finally {
                 setLoading(false);
             }
